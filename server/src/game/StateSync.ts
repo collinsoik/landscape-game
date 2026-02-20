@@ -31,6 +31,12 @@ export function handlePlace(
     return;
   }
 
+  // Validate coordinates are finite numbers
+  if (!Number.isFinite(data.x) || !Number.isFinite(data.y)) {
+    socket.emit('element:rejected', { reason: 'Invalid coordinates' });
+    return;
+  }
+
   const elDef = getElement(data.elementType);
   if (!elDef) {
     socket.emit('element:rejected', { reason: `Unknown element type: ${data.elementType}` });
@@ -51,7 +57,13 @@ export function handlePlace(
     return;
   }
 
-  const zoneConfig: ZoneConfig = JSON.parse(teamRow.zone_config);
+  let zoneConfig: ZoneConfig;
+  try {
+    zoneConfig = JSON.parse(teamRow.zone_config);
+  } catch {
+    socket.emit('element:rejected', { reason: 'Invalid zone configuration' });
+    return;
+  }
   const cx = data.x + elDef.width / 2;
   const cy = data.y + elDef.height / 2;
   const zone = zoneConfig.zones.find(
@@ -125,6 +137,12 @@ export function handleMove(
     return;
   }
 
+  // Validate coordinates are finite numbers
+  if (!Number.isFinite(data.x) || !Number.isFinite(data.y)) {
+    socket.emit('element:rejected', { reason: 'Invalid coordinates', placementId: data.placementId });
+    return;
+  }
+
   db.prepare('UPDATE placements SET x = ?, y = ? WHERE id = ?').run(data.x, data.y, data.placementId);
 
   io.to(`session:${sessionId}`).emit('element:moved', {
@@ -133,7 +151,9 @@ export function handleMove(
     y: data.y,
   });
 
-  broadcastTeamScore(io, sessionId, player.teamId!, placement.round);
+  if (player.teamId) {
+    broadcastTeamScore(io, sessionId, player.teamId, placement.round);
+  }
 }
 
 /**
@@ -164,7 +184,9 @@ export function handleRemove(
 
   io.to(`session:${sessionId}`).emit('element:removed', { placementId: data.placementId });
 
-  broadcastTeamScore(io, sessionId, player.teamId!, placement.round);
+  if (player.teamId) {
+    broadcastTeamScore(io, sessionId, player.teamId, placement.round);
+  }
 }
 
 /**

@@ -89,7 +89,7 @@ export default function ResultsPage({ params }: ResultsPageProps) {
                           {CATEGORY_LABELS[cat]}
                         </span>
                         <span className="font-mono text-[#8bba6a]">
-                          {entry.autoScore.total[cat].toFixed(1)}
+                          {(entry.autoScore?.total?.[cat] ?? 0).toFixed(1)}
                         </span>
                       </div>
                     )
@@ -110,13 +110,13 @@ export default function ResultsPage({ params }: ResultsPageProps) {
                               {CATEGORY_LABELS[cat]}
                             </span>
                             <span className="font-mono text-[#c9a84c]">
-                              {entry.judgeScore![cat]}
+                              {entry.judgeScore?.[cat] ?? 0}
                             </span>
                           </div>
                         )
                       )}
                     </div>
-                    {entry.judgeScore.comments.length > 0 && (
+                    {entry.judgeScore?.comments && entry.judgeScore.comments.length > 0 && (
                       <div className="mt-1">
                         {entry.judgeScore.comments.map((c, i) => (
                           <p key={i} className="text-xs text-[#6a9a4a] italic">

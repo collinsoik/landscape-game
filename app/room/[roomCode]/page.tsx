@@ -17,6 +17,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   const [joined, setJoined] = useState(false);
 
   const connected = useGameStore((s) => s.connected);
+  const reconnecting = useGameStore((s) => s.reconnecting);
   const players = useGameStore((s) => s.players);
   const teams = useGameStore((s) => s.teams);
   const status = useGameStore((s) => s.room.status);
@@ -66,9 +67,19 @@ export default function LobbyPage({ params }: LobbyPageProps) {
         Room: <span className="font-mono font-bold text-[#8bba6a]">{roomCode}</span>
       </p>
 
+      {/* Connection status */}
+      {!connected && (
+        <div className="mb-4 flex items-center gap-2 text-xs" role="status">
+          <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+          <span className="text-yellow-500">
+            {reconnecting ? 'Reconnecting...' : 'Connecting to server...'}
+          </span>
+        </div>
+      )}
+
       {error && (
         <PixelCard className="mb-4 w-full max-w-md">
-          <p className="text-[#c0392b] text-sm">{error}</p>
+          <p className="text-[#c0392b] text-sm" role="alert">{error}</p>
         </PixelCard>
       )}
 
@@ -98,8 +109,9 @@ export default function LobbyPage({ params }: LobbyPageProps) {
                     background: player.connected ? '#2ecc71' : '#555',
                     boxShadow: player.connected ? '0 0 4px #2ecc71' : 'none',
                   }}
+                  aria-hidden="true"
                 />
-                <span className="truncate">{player.name}</span>
+                <span className="truncate" title={player.connected ? 'Online' : 'Disconnected'}>{player.name}</span>
               </div>
             ))}
           </div>

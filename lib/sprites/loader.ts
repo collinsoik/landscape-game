@@ -70,7 +70,7 @@ export function getSprite(
 
   const img = generatePlaceholderSprite(type, category, width, height);
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (img.complete) {
       spriteCache.set(key, img);
       resolve(img);
@@ -78,6 +78,9 @@ export function getSprite(
       img.onload = () => {
         spriteCache.set(key, img);
         resolve(img);
+      };
+      img.onerror = () => {
+        reject(new Error(`Failed to load sprite: ${type}`));
       };
     }
   });

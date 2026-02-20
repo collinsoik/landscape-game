@@ -11,6 +11,7 @@ export default function LandingPage() {
   const [roomCode, setRoomCode] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState('');
+  const [joining, setJoining] = useState(false);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +29,15 @@ export default function LandingPage() {
       return;
     }
 
+    setJoining(true);
     // Store name in sessionStorage for the lobby page to use
-    sessionStorage.setItem('playerName', name);
+    try {
+      sessionStorage.setItem('playerName', name);
+    } catch {
+      setError('Could not save player name. Please check browser settings.');
+      setJoining(false);
+      return;
+    }
     router.push(`/room/${code}`);
   };
 
@@ -73,11 +81,11 @@ export default function LandingPage() {
           />
 
           {error && (
-            <p className="text-xs text-[#c0392b]">{error}</p>
+            <p className="text-xs text-[#c0392b]" role="alert">{error}</p>
           )}
 
-          <PixelButton type="submit" variant="primary" size="lg">
-            Join Game
+          <PixelButton type="submit" variant="primary" size="lg" disabled={joining}>
+            {joining ? 'Joining...' : 'Join Game'}
           </PixelButton>
         </form>
       </PixelCard>

@@ -11,8 +11,9 @@ interface GameHUDProps {
 }
 
 function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
+  const clamped = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(clamped / 60);
+  const s = clamped % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 

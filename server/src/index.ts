@@ -39,7 +39,7 @@ app.use(cors({
   ],
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '..', 'data', 'uploads')));
@@ -149,10 +149,14 @@ io.on('connection', (socket) => {
     const player = getPlayer(info.playerId);
     if (!player) return;
 
+    // Validate and sanitize message
+    const text = typeof data.text === 'string' ? data.text.trim().slice(0, 500) : '';
+    if (!text) return;
+
     io.to(`session:${info.sessionId}`).emit('chat:message', {
       playerId: player.id,
       playerName: player.name,
-      text: data.text,
+      text,
       timestamp: new Date().toISOString(),
     });
   });
@@ -294,7 +298,13 @@ function broadcastFinalScores(sessionId: string, round: number): void {
 
   for (const team of teams) {
     const placements = getPlacementsForTeam(team.id, round);
-    const zoneConfig: ZoneConfig = JSON.parse(team.zoneConfig);
+    let zoneConfig: ZoneConfig;
+    try {
+      zoneConfig = JSON.parse(team.zoneConfig);
+    } catch {
+      console.error(`[Score] Invalid zone config for team ${team.id}, skipping`);
+      continue;
+    }
     const autoScore = computeScore(placements, zoneConfig.zones);
 
     // Load judge scores if any

@@ -11,8 +11,9 @@ interface GamePageProps {
 }
 
 function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
+  const clamped = Math.max(0, Math.floor(seconds));
+  const m = Math.floor(clamped / 60);
+  const s = clamped % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
@@ -31,6 +32,8 @@ export default function GamePage({ params }: GamePageProps) {
   const teams = useGameStore((s) => s.teams);
   const playerId = useGameStore((s) => s.playerId);
   const error = useGameStore((s) => s.error);
+  const connected = useGameStore((s) => s.connected);
+  const reconnecting = useGameStore((s) => s.reconnecting);
 
   // Find my team
   const myTeam = teams.find((t) =>
@@ -68,8 +71,8 @@ export default function GamePage({ params }: GamePageProps) {
 
         <div className="flex items-center gap-4">
           {paused && (
-            <span className="text-xs font-bold uppercase text-[#f39c12] animate-pulse">
-              Paused
+            <span className="text-xs font-bold uppercase text-[#f39c12] animate-pulse" role="status">
+              Paused -- Game paused by host
             </span>
           )}
           {timeRemaining !== null && (
@@ -78,6 +81,8 @@ export default function GamePage({ params }: GamePageProps) {
                 'font-mono text-lg font-bold',
                 timeRemaining <= 60 ? 'text-[#c0392b]' : 'text-[#8bba6a]',
               ].join(' ')}
+              aria-live="polite"
+              aria-label={`Time remaining: ${formatTime(timeRemaining)}`}
             >
               {formatTime(timeRemaining)}
             </span>
@@ -101,8 +106,15 @@ export default function GamePage({ params }: GamePageProps) {
         </div>
       </div>
 
+      {!connected && (
+        <div className="bg-[#2a1f0f] border-b border-[#f39c12] px-4 py-1 text-xs text-[#f39c12] flex items-center gap-2" role="status">
+          <span className="inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+          {reconnecting ? 'Reconnecting to server...' : 'Connecting to server...'}
+        </div>
+      )}
+
       {error && (
-        <div className="bg-[#2a0f0f] border-b border-[#c0392b] px-4 py-1 text-xs text-[#c0392b]">
+        <div className="bg-[#2a0f0f] border-b border-[#c0392b] px-4 py-1 text-xs text-[#c0392b]" role="alert">
           {error}
         </div>
       )}

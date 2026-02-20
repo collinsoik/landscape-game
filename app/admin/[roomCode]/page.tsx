@@ -37,6 +37,7 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
   }, [emit, adminToken]);
 
   const endRound = useCallback(() => {
+    if (!window.confirm('Are you sure you want to end this round? All players will be moved to judging.')) return;
     emit('admin:end-round', { adminToken });
   }, [emit, adminToken]);
 
@@ -112,10 +113,10 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
             )}
           </div>
 
-          {room.roundTimeRemaining !== null && (
-            <p className="text-sm font-mono text-[#8bba6a] mt-2">
-              Time remaining: {Math.floor(room.roundTimeRemaining / 60)}:
-              {(room.roundTimeRemaining % 60).toString().padStart(2, '0')}
+          {room.roundTimeRemaining !== null && room.roundTimeRemaining >= 0 && (
+            <p className="text-sm font-mono text-[#8bba6a] mt-2" aria-live="polite">
+              Time remaining: {Math.floor(Math.max(0, room.roundTimeRemaining) / 60)}:
+              {(Math.max(0, room.roundTimeRemaining) % 60).toString().padStart(2, '0')}
             </p>
           )}
         </PixelCard>

@@ -7,6 +7,7 @@ import { useGameStore } from '@/store';
 
 export function useWebSocket() {
   const socketRef = useRef<GameSocket | null>(null);
+  const boundRef = useRef(false);
   const setConnected = useGameStore((s) => s.setConnected);
   const setReconnecting = useGameStore((s) => s.setReconnecting);
   const setError = useGameStore((s) => s.setError);
@@ -17,29 +18,34 @@ export function useWebSocket() {
     const socket = getSocket();
     socketRef.current = socket;
 
-    socket.on('connect', () => {
-      setConnected(true);
-      setReconnecting(false);
-      bindSocketToStore(socket);
-    });
+    // Only bind listeners once to prevent duplicate handlers on reconnect
+    if (!boundRef.current) {
+      boundRef.current = true;
 
-    socket.on('disconnect', () => {
-      setConnected(false);
-    });
+      socket.on('connect', () => {
+        setConnected(true);
+        setReconnecting(false);
+        bindSocketToStore(socket);
+      });
 
-    socket.io.on('reconnect_attempt', () => {
-      setReconnecting(true);
-    });
+      socket.on('disconnect', () => {
+        setConnected(false);
+      });
 
-    socket.io.on('reconnect', () => {
-      setReconnecting(false);
-      setConnected(true);
-    });
+      socket.io.on('reconnect_attempt', () => {
+        setReconnecting(true);
+      });
 
-    socket.io.on('reconnect_failed', () => {
-      setReconnecting(false);
-      setError('Connection lost. Please refresh the page.');
-    });
+      socket.io.on('reconnect', () => {
+        setReconnecting(false);
+        setConnected(true);
+      });
+
+      socket.io.on('reconnect_failed', () => {
+        setReconnecting(false);
+        setError('Connection lost. Please refresh the page.');
+      });
+    }
 
     socket.connect();
   }, [setConnected, setReconnecting, setError]);

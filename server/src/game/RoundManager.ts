@@ -63,6 +63,9 @@ export function startRound(
 
   updateSession(sessionId, { status: 'playing', currentRound: roundNumber });
 
+  // Clear any existing timer to prevent duplicate intervals
+  clearTimer(sessionId);
+
   // Set up timer
   const state: TimerState = {
     remaining: round.durationSeconds,

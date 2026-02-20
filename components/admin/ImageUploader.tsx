@@ -24,6 +24,7 @@ export function ImageUploader({ roomCode, adminToken, onUpload }: ImageUploaderP
     // Preview
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result as string);
+    reader.onerror = () => setError('Failed to read file. Please try a different image.');
     reader.readAsDataURL(file);
   }
 
