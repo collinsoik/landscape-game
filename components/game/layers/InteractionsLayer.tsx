@@ -59,7 +59,18 @@ export default function InteractionsLayer({
   // Find unique radii for radius circles
   const radii = [...new Set(relevantRules.map((r) => r.radius * scale))];
 
-  // Find active interactions with nearby elements
+  // Build a lookup index: elementType -> placements of that type
+  const placementsByType = new Map<string, Placement[]>();
+  for (const p of placements) {
+    const list = placementsByType.get(p.elementType);
+    if (list) {
+      list.push(p);
+    } else {
+      placementsByType.set(p.elementType, [p]);
+    }
+  }
+
+  // Find active interactions using indexed lookup — O(n) total
   const interactions: ActiveInteraction[] = [];
   for (const rule of relevantRules) {
     const otherType =
@@ -67,9 +78,11 @@ export default function InteractionsLayer({
         ? rule.elementB
         : rule.elementA;
 
-    for (const p of placements) {
+    const candidates = placementsByType.get(otherType);
+    if (!candidates) continue;
+
+    for (const p of candidates) {
       if (p.id === focusPlacement.id) continue;
-      if (p.elementType !== otherType) continue;
 
       const otherCenter = getCenter(p);
       const dist = distance(
@@ -109,12 +122,11 @@ export default function InteractionsLayer({
         />
       ))}
 
-      {/* Interaction lines */}
+      {/* Interaction lines — dashed for synergy, solid for conflict */}
       {interactions.map((inter, i) => {
         const isSynergy = inter.effect === 'synergy';
         const color = isSynergy ? '#2ecc71' : '#e74c3c';
-        const midX = (inter.ax + inter.bx) / 2;
-        const midY = (inter.ay + inter.by) / 2;
+        const dashPattern = isSynergy ? [6, 3] : undefined;
 
         return (
           <Line
@@ -122,24 +134,25 @@ export default function InteractionsLayer({
             points={[inter.ax, inter.ay, inter.bx, inter.by]}
             stroke={color}
             strokeWidth={2}
-            dash={[6, 3]}
+            dash={dashPattern}
             opacity={0.8}
           />
         );
       })}
 
-      {/* Score popups at midpoint */}
+      {/* Score popups at midpoint with icon for colorblind accessibility */}
       {interactions.map((inter, i) => {
         const isSynergy = inter.effect === 'synergy';
         const color = isSynergy ? '#2ecc71' : '#e74c3c';
         const midX = (inter.ax + inter.bx) / 2;
         const midY = (inter.ay + inter.by) / 2;
-        const label = isSynergy ? `+${inter.value}` : `${inter.value}`;
+        const icon = isSynergy ? '\u2714' : '\u2716';
+        const label = isSynergy ? `${icon} +${inter.value}` : `${icon} ${inter.value}`;
 
         return (
           <Text
             key={`score-popup-${i}`}
-            x={midX - 12}
+            x={midX - 16}
             y={midY - 8}
             text={label}
             fontSize={13}

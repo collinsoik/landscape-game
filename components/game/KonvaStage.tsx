@@ -122,6 +122,37 @@ export default function KonvaStage({
     [selectedElementType, playerZone, onPlaceElement, onClearSelection, screenToCanvas],
   );
 
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const pos = screenToCanvas(touch.clientX, touch.clientY);
+      setCursorPos(pos);
+    },
+    [screenToCanvas],
+  );
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.changedTouches.length !== 1) return;
+      const touch = e.changedTouches[0];
+      const pos = screenToCanvas(touch.clientX, touch.clientY);
+
+      if (selectedElementType && playerZone && isPointInZone(pos.x, pos.y, playerZone)) {
+        const def = getElementDef(selectedElementType);
+        const spriteScale = GAME_DEFAULTS.canvas.spriteScale;
+        if (def) {
+          onPlaceElement(
+            selectedElementType,
+            pos.x - (def.width * spriteScale) / 2,
+            pos.y - (def.height * spriteScale) / 2,
+          );
+        }
+      }
+    },
+    [selectedElementType, playerZone, onPlaceElement, screenToCanvas],
+  );
+
   // Handle HTML5 drag-and-drop from sidebar
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
@@ -166,6 +197,8 @@ export default function KonvaStage({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={handleStageClick}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
@@ -193,6 +226,7 @@ export default function KonvaStage({
           selectedPlacementId={selectedPlacementId}
           onSelect={onSelectPlacement}
           onMove={onMovePlacement}
+          onHover={setHoveredPlacementId}
         />
         <InteractionsLayer
           placements={placements}

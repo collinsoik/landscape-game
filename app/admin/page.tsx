@@ -19,6 +19,19 @@ export default function AdminCreatePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<CreateRoomResponse | null>(null);
+  const [showAdminToken, setShowAdminToken] = useState(false);
+  const [showJudgeToken, setShowJudgeToken] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      // Fallback: do nothing, the text is still visible
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,21 +75,57 @@ export default function AdminCreatePage() {
           <div className="flex flex-col gap-3">
             <div>
               <p className="text-xs text-[#6a9a4a] uppercase">Room Code</p>
-              <p className="text-2xl font-bold font-mono text-[#8bba6a]">
-                {result.roomCode}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-2xl font-bold font-mono text-[#8bba6a]">
+                  {result.roomCode}
+                </p>
+                <button
+                  onClick={() => copyToClipboard(result.roomCode, 'room')}
+                  className="text-[#6a9a4a] hover:text-[#8bba6a] text-xs cursor-pointer"
+                >
+                  {copiedField === 'room' ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
             </div>
             <div>
               <p className="text-xs text-[#6a9a4a] uppercase">Admin Token</p>
-              <p className="text-xs font-mono text-[#d4e8c2] break-all bg-[#0d1f0d] px-2 py-1">
-                {result.adminToken}
-              </p>
+              <div className="flex items-center gap-2 bg-[#0d1f0d] px-2 py-1">
+                <p className="text-xs font-mono text-[#d4e8c2] break-all flex-1">
+                  {showAdminToken ? result.adminToken : '\u2022'.repeat(20)}
+                </p>
+                <button
+                  onClick={() => setShowAdminToken((v) => !v)}
+                  className="text-[#6a9a4a] hover:text-[#8bba6a] text-xs flex-shrink-0 cursor-pointer"
+                >
+                  {showAdminToken ? 'Hide' : 'Show'}
+                </button>
+                <button
+                  onClick={() => copyToClipboard(result.adminToken, 'admin')}
+                  className="text-[#6a9a4a] hover:text-[#8bba6a] text-xs flex-shrink-0 cursor-pointer"
+                >
+                  {copiedField === 'admin' ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
             </div>
             <div>
               <p className="text-xs text-[#6a9a4a] uppercase">Judge Token</p>
-              <p className="text-xs font-mono text-[#d4e8c2] break-all bg-[#0d1f0d] px-2 py-1">
-                {result.judgeToken}
-              </p>
+              <div className="flex items-center gap-2 bg-[#0d1f0d] px-2 py-1">
+                <p className="text-xs font-mono text-[#d4e8c2] break-all flex-1">
+                  {showJudgeToken ? result.judgeToken : '\u2022'.repeat(20)}
+                </p>
+                <button
+                  onClick={() => setShowJudgeToken((v) => !v)}
+                  className="text-[#6a9a4a] hover:text-[#8bba6a] text-xs flex-shrink-0 cursor-pointer"
+                >
+                  {showJudgeToken ? 'Hide' : 'Show'}
+                </button>
+                <button
+                  onClick={() => copyToClipboard(result.judgeToken, 'judge')}
+                  className="text-[#6a9a4a] hover:text-[#8bba6a] text-xs flex-shrink-0 cursor-pointer"
+                >
+                  {copiedField === 'judge' ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2 mt-2">

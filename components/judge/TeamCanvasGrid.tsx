@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Placement, ZoneConfig } from '@/lib/types';
 import { getElementDef, ELEMENT_CATEGORIES } from '@/config/elements';
 
@@ -22,38 +22,59 @@ interface TeamCanvasGridProps {
  * Uses plain canvas 2D (not Konva) for lightweight rendering.
  */
 export function TeamCanvasGrid({ teams, canvasWidth, canvasHeight }: TeamCanvasGridProps) {
-  const scale = 0.35;
-  const thumbW = canvasWidth * scale;
-  const thumbH = canvasHeight * scale;
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+  const baseScale = 0.35;
+  const expandedScale = 0.65;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {teams.map((team) => (
-        <div key={team.teamId} className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-sm"
-                style={{ backgroundColor: team.teamColor }}
-              />
-              <span className="font-bold text-green-100">{team.teamName}</span>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {teams.map((team) => {
+        const isExpanded = expandedTeam === team.teamId;
+        const currentScale = isExpanded ? expandedScale : baseScale;
+        const thumbW = canvasWidth * currentScale;
+        const thumbH = canvasHeight * currentScale;
+
+        return (
+          <div
+            key={team.teamId}
+            className={[
+              'space-y-2',
+              isExpanded ? 'col-span-1 sm:col-span-2' : '',
+            ].join(' ')}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-4 h-4 rounded-sm"
+                  style={{ backgroundColor: team.teamColor }}
+                />
+                <span className="font-bold text-green-100">{team.teamName}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-green-400 font-mono">
+                  Score: {team.autoScore.toFixed(0)}
+                </span>
+                <button
+                  onClick={() => setExpandedTeam(isExpanded ? null : team.teamId)}
+                  className="text-xs text-[#8bba6a] hover:text-[#a8d880] cursor-pointer"
+                >
+                  {isExpanded ? 'Collapse' : 'Expand'}
+                </button>
+              </div>
             </div>
-            <span className="text-sm text-green-400 font-mono">
-              Score: {team.autoScore.toFixed(0)}
-            </span>
+            <TeamCanvasThumb
+              placements={team.placements}
+              zoneConfig={team.zoneConfig}
+              teamColor={team.teamColor}
+              width={thumbW}
+              height={thumbH}
+              canvasWidth={canvasWidth}
+              canvasHeight={canvasHeight}
+              scale={currentScale}
+            />
           </div>
-          <TeamCanvasThumb
-            placements={team.placements}
-            zoneConfig={team.zoneConfig}
-            teamColor={team.teamColor}
-            width={thumbW}
-            height={thumbH}
-            canvasWidth={canvasWidth}
-            canvasHeight={canvasHeight}
-            scale={scale}
-          />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, use } from 'react';
+import { useEffect, useRef, use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useGameStore } from '@/store';
@@ -31,6 +31,7 @@ export default function GamePage({ params }: GamePageProps) {
   const teams = useGameStore((s) => s.teams);
   const playerId = useGameStore((s) => s.playerId);
   const error = useGameStore((s) => s.error);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Find my team
   const myTeam = teams.find((t) =>
@@ -57,12 +58,12 @@ export default function GamePage({ params }: GamePageProps) {
           boxShadow: '0 2px 0 #1a3a1a, 0 3px 0 rgba(0,0,0,0.3)',
         }}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <span className="text-xs font-bold uppercase tracking-wider text-[#8bba6a]">
             Round {currentRound}/{totalRounds}
           </span>
           {areaLabel && (
-            <span className="text-xs text-[#6a9a4a]">{areaLabel}</span>
+            <span className="text-xs text-[#6a9a4a] hidden sm:inline">{areaLabel}</span>
           )}
         </div>
 
@@ -97,7 +98,7 @@ export default function GamePage({ params }: GamePageProps) {
               {myTeam.team.name}
             </span>
           )}
-          <span className="text-xs text-[#4a6a3a] font-mono">{roomCode}</span>
+          <span className="text-xs text-[#4a6a3a] font-mono hidden sm:inline">{roomCode}</span>
         </div>
       </div>
 
@@ -108,23 +109,53 @@ export default function GamePage({ params }: GamePageProps) {
       )}
 
       {/* Main game area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - canvas-dev will implement ElementSidebar */}
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile sidebar toggle */}
+        <button
+          className="md:hidden fixed bottom-4 right-4 z-50 bg-[#1a3a1a] text-[#8bba6a] p-3 rounded-full shadow-lg cursor-pointer"
+          onClick={() => setSidebarOpen((o) => !o)}
+          aria-label={sidebarOpen ? 'Close element palette' : 'Open element palette'}
+        >
+          {sidebarOpen ? '\u2716' : '\u2630'}
+        </button>
+
+        {/* Mobile overlay backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar - collapsible on mobile, fixed on desktop */}
         <div
-          className="w-[280px] flex-shrink-0 overflow-y-auto"
+          className={[
+            'flex-shrink-0 overflow-y-auto transition-transform duration-200',
+            'fixed inset-y-0 left-0 z-40 w-[280px]',
+            'md:relative md:translate-x-0 md:w-[280px]',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          ].join(' ')}
           style={{
             background: '#0d1f0d',
             boxShadow: 'inset -2px 0 0 #1a3a1a',
           }}
         >
           <PixelCard title="Elements" className="m-2">
-            <p className="text-xs text-[#4a6a3a]">
-              Element sidebar loading...
-            </p>
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center gap-2 animate-pulse">
+                  <div className="w-9 h-9 rounded bg-[#2d5a27]/50" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-3 bg-[#2d5a27]/50 rounded w-3/4" />
+                    <div className="h-2 bg-[#2d5a27]/30 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </PixelCard>
         </div>
 
-        {/* Canvas area - canvas-dev will implement GameCanvas */}
+        {/* Canvas area */}
         <div
           ref={canvasContainerRef}
           className="flex-1 flex items-center justify-center overflow-hidden relative"
@@ -132,7 +163,10 @@ export default function GamePage({ params }: GamePageProps) {
           id="canvas-container"
         >
           <div className="text-center text-[#4a6a3a]">
-            <p className="text-sm">Canvas loading...</p>
+            <div className="animate-pulse space-y-3">
+              <div className="mx-auto w-16 h-16 rounded bg-[#2d5a27]/30" />
+              <p className="text-sm">Loading canvas...</p>
+            </div>
           </div>
         </div>
       </div>

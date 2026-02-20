@@ -38,7 +38,7 @@ export default function PixelButton({
     <button
       className={[
         'relative font-bold uppercase tracking-wider cursor-pointer select-none',
-        'border-none outline-none transition-all duration-100',
+        'border-none outline-none focus-visible:ring-2 focus-visible:ring-[#8bba6a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a2e1a] transition-all duration-100',
         variantStyles[variant],
         sizeStyles[size],
         disabled

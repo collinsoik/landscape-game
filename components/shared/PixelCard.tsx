@@ -18,7 +18,7 @@ export default function PixelCard({
   return (
     <div
       className={[
-        'bg-[#1a2e1a] text-[#d4e8c2] p-4',
+        'bg-[#1a2e1a] text-[#d4e8c2] p-3 sm:p-4 md:p-6',
         glow ? 'shadow-[0_0_12px_rgba(45,90,39,0.5)]' : '',
         className,
       ].join(' ')}

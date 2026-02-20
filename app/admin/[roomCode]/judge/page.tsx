@@ -6,6 +6,7 @@ import { useGameStore } from '@/store';
 import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
 import PixelInput from '@/components/shared/PixelInput';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
 
 interface JudgePageProps {
   params: Promise<{ roomCode: string }>;
@@ -46,6 +47,7 @@ export default function JudgePage({ params }: JudgePageProps) {
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
   const [error, setError] = useState('');
+  const [confirmSubmit, setConfirmSubmit] = useState<string | null>(null);
 
   useEffect(() => {
     connect();
@@ -124,10 +126,31 @@ export default function JudgePage({ params }: JudgePageProps) {
       </p>
 
       {error && (
-        <div className="mb-4 text-xs text-[#c0392b] bg-[#2a0f0f] px-3 py-2">
-          {error}
+        <div
+          className="fixed top-0 left-0 right-0 z-40 text-xs text-[#fde8e5] bg-[#c0392b] px-4 py-3 flex items-center justify-between"
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
+        >
+          <span>{error}</span>
+          <button
+            onClick={() => setError('')}
+            className="ml-4 text-[#fde8e5] hover:text-white font-bold cursor-pointer"
+          >
+            Dismiss
+          </button>
         </div>
       )}
+
+      <div
+        className="mb-4 text-sm text-[#d4e8c2] bg-[#0d1f0d] px-3 py-2 font-mono"
+        style={{
+          boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.05), inset -1px -1px 0 rgba(0,0,0,0.2)',
+        }}
+      >
+        Scored {submitted.size} of {teams.length} teams
+        {submitted.size === teams.length && teams.length > 0 && (
+          <span className="text-[#2ecc71] ml-2">-- All teams scored!</span>
+        )}
+      </div>
 
       <div className="w-full max-w-3xl flex flex-col gap-6">
         {teams.map(({ team }) => {
@@ -154,7 +177,7 @@ export default function JudgePage({ params }: JudgePageProps) {
               {teamScore && (
                 <div className="mb-3 p-2 bg-[#0d1f0d] text-xs">
                   <p className="text-[#6a9a4a] mb-1 uppercase font-bold">Auto Score</p>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {CATEGORIES.map(({ key, label }) => (
                       <div key={key}>
                         <span className="text-[#4a6a3a]">{label}: </span>
@@ -203,7 +226,7 @@ export default function JudgePage({ params }: JudgePageProps) {
               <PixelButton
                 variant="primary"
                 size="sm"
-                onClick={() => submitScore(team.id)}
+                onClick={() => setConfirmSubmit(team.id)}
                 disabled={isSubmitted || submitting === team.id}
               >
                 {submitting === team.id
@@ -216,6 +239,26 @@ export default function JudgePage({ params }: JudgePageProps) {
           );
         })}
       </div>
+
+      <ConfirmDialog
+        open={confirmSubmit !== null}
+        title="Submit Score?"
+        confirmLabel="Submit"
+        confirmVariant="primary"
+        onConfirm={() => {
+          if (confirmSubmit) submitScore(confirmSubmit);
+          setConfirmSubmit(null);
+        }}
+        onCancel={() => setConfirmSubmit(null)}
+      >
+        <p>
+          Submit judge scores for{' '}
+          <strong>
+            {teams.find((t) => t.team.id === confirmSubmit)?.team.name ?? 'this team'}
+          </strong>
+          ? This cannot be changed after submission.
+        </p>
+      </ConfirmDialog>
 
       <div className="mt-6 text-xs">
         <a

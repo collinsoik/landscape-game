@@ -11,6 +11,7 @@ export default function LandingPage() {
   const [roomCode, setRoomCode] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +31,7 @@ export default function LandingPage() {
 
     // Store name in sessionStorage for the lobby page to use
     sessionStorage.setItem('playerName', name);
+    setLoading(true);
     router.push(`/room/${code}`);
   };
 
@@ -76,8 +78,8 @@ export default function LandingPage() {
             <p className="text-xs text-[#c0392b]">{error}</p>
           )}
 
-          <PixelButton type="submit" variant="primary" size="lg">
-            Join Game
+          <PixelButton type="submit" variant="primary" size="lg" disabled={loading}>
+            {loading ? 'Joining...' : 'Join Game'}
           </PixelButton>
         </form>
       </PixelCard>

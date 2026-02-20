@@ -26,7 +26,7 @@ export default function ElementSidebar({
   }, []);
 
   return (
-    <div className="w-64 flex-shrink-0 bg-neutral-850 border-l border-neutral-700 flex flex-col h-full"
+    <div className="w-full md:w-64 flex-shrink-0 bg-neutral-850 border-l border-neutral-700 flex flex-col h-full"
       style={{ backgroundColor: '#1a1a1a' }}
     >
       {/* Header */}

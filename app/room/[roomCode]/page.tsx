@@ -17,6 +17,7 @@ export default function LobbyPage({ params }: LobbyPageProps) {
   const [joined, setJoined] = useState(false);
 
   const connected = useGameStore((s) => s.connected);
+  const reconnecting = useGameStore((s) => s.reconnecting);
   const players = useGameStore((s) => s.players);
   const teams = useGameStore((s) => s.teams);
   const status = useGameStore((s) => s.room.status);
@@ -54,6 +55,27 @@ export default function LobbyPage({ params }: LobbyPageProps) {
 
   const connectedCount = players.filter((p) => p.connected).length;
 
+  if (!connected && !error) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center p-4">
+        <PixelCard className="w-full max-w-md">
+          <div className="flex flex-col gap-3 animate-pulse">
+            <div className="h-4 bg-[#2d5a27]/30 rounded w-3/4" />
+            <div className="h-4 bg-[#2d5a27]/30 rounded w-1/2" />
+            <div className="grid grid-cols-2 gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-8 bg-[#2d5a27]/20 rounded" />
+              ))}
+            </div>
+          </div>
+          <p className="text-sm text-[#6a9a4a] mt-4 text-center">
+            {reconnecting ? 'Reconnecting...' : 'Connecting to server...'}
+          </p>
+        </PixelCard>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4">
       <h1
@@ -73,35 +95,47 @@ export default function LobbyPage({ params }: LobbyPageProps) {
       )}
 
       {/* Player list */}
-      <PixelCard title={`Players (${connectedCount})`} className="w-full max-w-md mb-4">
+      <PixelCard title={`Players (${connectedCount})`} className="w-full max-w-md md:max-w-xl mb-4">
         {players.length === 0 ? (
           <p className="text-sm text-[#4a6a3a]">Waiting for players to join...</p>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {players.map((player) => (
-              <div
-                key={player.id}
-                className={[
-                  'flex items-center gap-2 px-3 py-2 text-sm',
-                  player.connected
-                    ? 'text-[#d4e8c2]'
-                    : 'text-[#4a6a3a] line-through',
-                ].join(' ')}
-                style={{
-                  boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.05), inset -1px -1px 0 rgba(0,0,0,0.2)',
-                  background: 'rgba(13,31,13,0.5)',
-                }}
-              >
-                <span
-                  className="inline-block w-2 h-2 flex-shrink-0"
+          <div className="max-h-64 overflow-y-auto pixel-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {players.map((player) => (
+                <div
+                  key={player.id}
+                  className={[
+                    'flex items-center gap-2 px-3 py-2 text-sm',
+                    player.connected
+                      ? 'text-[#d4e8c2]'
+                      : 'text-[#4a6a3a] line-through',
+                  ].join(' ')}
                   style={{
-                    background: player.connected ? '#2ecc71' : '#555',
-                    boxShadow: player.connected ? '0 0 4px #2ecc71' : 'none',
+                    boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.05), inset -1px -1px 0 rgba(0,0,0,0.2)',
+                    background: 'rgba(13,31,13,0.5)',
                   }}
-                />
-                <span className="truncate">{player.name}</span>
-              </div>
-            ))}
+                >
+                  <span
+                    className="inline-block w-2 h-2 flex-shrink-0"
+                    style={{
+                      background: player.connected ? '#2ecc71' : '#555',
+                      boxShadow: player.connected ? '0 0 4px #2ecc71' : 'none',
+                    }}
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">{player.name}</span>
+                  <span className={[
+                    'text-[10px] ml-auto flex-shrink-0',
+                    player.connected ? 'text-[#2ecc71]' : 'text-[#555]',
+                  ].join(' ')}>
+                    {player.connected ? 'Online' : 'Offline'}
+                  </span>
+                  <span className="sr-only">
+                    {player.name}, {player.connected ? 'online' : 'offline'}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </PixelCard>

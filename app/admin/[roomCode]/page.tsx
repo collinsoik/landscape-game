@@ -5,6 +5,8 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { useGameStore } from '@/store';
 import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
+import PixelInput from '@/components/shared/PixelInput';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
 
 interface AdminDashboardProps {
   params: Promise<{ roomCode: string }>;
@@ -14,6 +16,8 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
   const { roomCode } = use(params);
   const { connect, emit } = useWebSocket();
   const [adminToken, setAdminToken] = useState('');
+  const [confirmEndRound, setConfirmEndRound] = useState(false);
+  const [playerSearch, setPlayerSearch] = useState('');
 
   const connected = useGameStore((s) => s.connected);
   const players = useGameStore((s) => s.players);
@@ -51,6 +55,11 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
   const connectedPlayers = players.filter(
     (p) => p.connected && p.name !== '__admin__'
   );
+  const filteredPlayers = playerSearch
+    ? connectedPlayers.filter((p) =>
+        p.name.toLowerCase().includes(playerSearch.toLowerCase())
+      )
+    : connectedPlayers;
 
   return (
     <div className="flex min-h-screen flex-col items-center p-6">
@@ -80,7 +89,7 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
                 <PixelButton variant="secondary" onClick={pauseGame}>
                   Pause
                 </PixelButton>
-                <PixelButton variant="danger" onClick={endRound}>
+                <PixelButton variant="danger" onClick={() => setConfirmEndRound(true)}>
                   End Round
                 </PixelButton>
               </>
@@ -90,7 +99,7 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
                 <PixelButton variant="primary" onClick={resumeGame}>
                   Resume
                 </PixelButton>
-                <PixelButton variant="danger" onClick={endRound}>
+                <PixelButton variant="danger" onClick={() => setConfirmEndRound(true)}>
                   End Round
                 </PixelButton>
               </>
@@ -113,7 +122,16 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
           </div>
 
           {room.roundTimeRemaining !== null && (
-            <p className="text-sm font-mono text-[#8bba6a] mt-2">
+            <p
+              className={[
+                'text-sm font-mono mt-2 font-bold',
+                room.roundTimeRemaining <= 15
+                  ? 'text-[#c0392b] animate-pulse'
+                  : room.roundTimeRemaining <= 60
+                    ? 'text-[#f39c12]'
+                    : 'text-[#8bba6a]',
+              ].join(' ')}
+            >
               Time remaining: {Math.floor(room.roundTimeRemaining / 60)}:
               {(room.roundTimeRemaining % 60).toString().padStart(2, '0')}
             </p>
@@ -122,28 +140,41 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
 
         {/* Players */}
         <PixelCard title={`Players (${connectedPlayers.length})`}>
-          {connectedPlayers.length === 0 ? (
-            <p className="text-sm text-[#4a6a3a]">No players connected yet.</p>
+          {connectedPlayers.length > 10 && (
+            <div className="mb-3">
+              <PixelInput
+                placeholder="Search players..."
+                value={playerSearch}
+                onChange={(e) => setPlayerSearch(e.target.value)}
+              />
+            </div>
+          )}
+          {filteredPlayers.length === 0 ? (
+            <p className="text-sm text-[#4a6a3a]">
+              {playerSearch ? 'No players match your search.' : 'No players connected yet.'}
+            </p>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
-              {connectedPlayers.map((p) => (
-                <div
-                  key={p.id}
-                  className="text-xs px-2 py-1 text-[#d4e8c2]"
-                  style={{
-                    background: 'rgba(13,31,13,0.5)',
-                    boxShadow:
-                      'inset 1px 1px 0 rgba(255,255,255,0.05), inset -1px -1px 0 rgba(0,0,0,0.2)',
-                  }}
-                >
-                  {p.name}
-                  {p.teamId && (
-                    <span className="text-[#6a9a4a] ml-1">
-                      ({teams.find((t) => t.team.id === p.teamId)?.team.name ?? '?'})
-                    </span>
-                  )}
-                </div>
-              ))}
+            <div className="max-h-64 overflow-y-auto pixel-scrollbar">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {filteredPlayers.map((p) => (
+                  <div
+                    key={p.id}
+                    className="text-xs px-2 py-1 text-[#d4e8c2]"
+                    style={{
+                      background: 'rgba(13,31,13,0.5)',
+                      boxShadow:
+                        'inset 1px 1px 0 rgba(255,255,255,0.05), inset -1px -1px 0 rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    {p.name}
+                    {p.teamId && (
+                      <span className="text-[#6a9a4a] ml-1">
+                        ({teams.find((t) => t.team.id === p.teamId)?.team.name ?? '?'})
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </PixelCard>
@@ -186,6 +217,23 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
           </a>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmEndRound}
+        title="End Round?"
+        confirmLabel="End Round"
+        confirmVariant="danger"
+        onConfirm={() => {
+          endRound();
+          setConfirmEndRound(false);
+        }}
+        onCancel={() => setConfirmEndRound(false)}
+      >
+        <p>
+          This will end the current round for all {connectedPlayers.length} players.
+          This action cannot be undone.
+        </p>
+      </ConfirmDialog>
     </div>
   );
 }

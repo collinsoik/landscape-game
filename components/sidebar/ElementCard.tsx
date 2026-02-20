@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import type { ElementDefinition } from '@/server/src/types/models';
 import { getSprite } from '@/lib/sprites/loader';
 
@@ -10,7 +10,7 @@ interface ElementCardProps {
   onSelect: (type: string) => void;
 }
 
-export default function ElementCard({
+function ElementCard({
   element,
   isSelected,
   onSelect,
@@ -93,3 +93,5 @@ export default function ElementCard({
     </div>
   );
 }
+
+export default memo(ElementCard);

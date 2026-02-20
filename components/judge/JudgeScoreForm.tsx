@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { PixelButton } from '@/components/shared/PixelButton';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
 
 interface JudgeScoreFormProps {
   teamId: string;
@@ -18,10 +19,10 @@ interface JudgeScoreFormProps {
 }
 
 const CATEGORIES = [
-  { key: 'biodiversity', label: 'Biodiversity', icon: '🦋' },
-  { key: 'sustainability', label: 'Sustainability', icon: '♻️' },
-  { key: 'aesthetics', label: 'Aesthetics', icon: '🎨' },
-  { key: 'ecosystemHealth', label: 'Ecosystem Health', icon: '🌿' },
+  { key: 'biodiversity', label: 'Biodiversity' },
+  { key: 'sustainability', label: 'Sustainability' },
+  { key: 'aesthetics', label: 'Aesthetics' },
+  { key: 'ecosystemHealth', label: 'Ecosystem Health' },
 ] as const;
 
 export function JudgeScoreForm({ teamId, teamName, teamColor, round, onSubmit }: JudgeScoreFormProps) {
@@ -33,14 +34,20 @@ export function JudgeScoreForm({ teamId, teamName, teamColor, round, onSubmit }:
   });
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   function handleScoreChange(category: string, value: number) {
     setScores((prev) => ({ ...prev, [category]: Math.max(0, Math.min(100, value)) }));
   }
 
   function handleSubmit() {
+    setShowConfirm(true);
+  }
+
+  function confirmSubmit() {
     onSubmit({ ...scores, comment });
     setSubmitted(true);
+    setShowConfirm(false);
   }
 
   if (submitted) {
@@ -63,11 +70,11 @@ export function JudgeScoreForm({ teamId, teamName, teamColor, round, onSubmit }:
         {teamName} — Round {round}
       </h3>
 
-      {CATEGORIES.map(({ key, label, icon }) => (
+      {CATEGORIES.map(({ key, label }) => (
         <div key={key} className="space-y-1">
           <div className="flex justify-between items-center">
             <label className="text-sm font-bold text-green-200">
-              {icon} {label}
+              {label}
             </label>
             <span className="text-sm text-green-400 font-mono">
               {scores[key as keyof typeof scores]}/100
@@ -99,6 +106,17 @@ export function JudgeScoreForm({ teamId, teamName, teamColor, round, onSubmit }:
       </div>
 
       <PixelButton onClick={handleSubmit}>Submit Scores</PixelButton>
+
+      <ConfirmDialog
+        open={showConfirm}
+        title="Submit Scores?"
+        confirmLabel="Submit"
+        confirmVariant="primary"
+        onConfirm={confirmSubmit}
+        onCancel={() => setShowConfirm(false)}
+      >
+        <p>Submit scores for <strong>{teamName}</strong>? This cannot be undone.</p>
+      </ConfirmDialog>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { Layer, Image as KonvaImage } from 'react-konva';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, memo } from 'react';
 import type { Placement, ZoneRect } from '@/server/src/types/models';
 import { getElementDef } from '@/config/elements';
 import { getSprite, getSpriteSync } from '@/lib/sprites/loader';
@@ -15,26 +15,33 @@ interface ElementsLayerProps {
   selectedPlacementId: string | null;
   onSelect: (placementId: string | null) => void;
   onMove: (placementId: string, x: number, y: number) => void;
+  onHover?: (placementId: string | null) => void;
 }
 
-export default function ElementsLayer({
+function ElementsLayer({
   placements,
   playerZone,
   currentPlayerId,
   selectedPlacementId,
   onSelect,
   onMove,
+  onHover,
 }: ElementsLayerProps) {
-  const [spritesReady, setSpritesReady] = useState(false);
+  const [loadGen, setLoadGen] = useState(0);
 
-  // Preload all needed sprites
+  // Kick off loading for all placements; bump loadGen when any new sprite loads
   useEffect(() => {
-    const loads = placements.map((p) => {
+    let cancelled = false;
+    placements.forEach((p) => {
       const def = getElementDef(p.elementType);
-      if (!def) return Promise.resolve();
-      return getSprite(def.type, def.category, def.width, def.height);
+      if (!def) return;
+      const cached = getSpriteSync(def.type, def.width, def.height);
+      if (cached) return;
+      getSprite(def.type, def.category, def.width, def.height).then(() => {
+        if (!cancelled) setLoadGen((g) => g + 1);
+      });
     });
-    Promise.all(loads).then(() => setSpritesReady(true));
+    return () => { cancelled = true; };
   }, [placements]);
 
   const handleDragEnd = useCallback(
@@ -53,8 +60,6 @@ export default function ElementsLayer({
       },
     [currentPlayerId, playerZone, onMove],
   );
-
-  if (!spritesReady) return <Layer />;
 
   const scale = GAME_DEFAULTS.canvas.spriteScale;
 
@@ -81,6 +86,8 @@ export default function ElementsLayer({
             draggable={isOwn}
             onClick={() => onSelect(isSelected ? null : p.id)}
             onTap={() => onSelect(isSelected ? null : p.id)}
+            onMouseEnter={() => onHover?.(p.id)}
+            onMouseLeave={() => onHover?.(null)}
             onDragEnd={handleDragEnd(p.id, p.playerId, def.width * scale, def.height * scale)}
             strokeEnabled={isSelected}
             stroke="#ffffff"
@@ -95,3 +102,5 @@ export default function ElementsLayer({
     </Layer>
   );
 }
+
+export default memo(ElementsLayer);
