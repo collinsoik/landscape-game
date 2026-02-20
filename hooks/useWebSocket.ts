@@ -7,6 +7,7 @@ import { useGameStore } from '@/store';
 
 export function useWebSocket() {
   const socketRef = useRef<GameSocket | null>(null);
+  const boundRef = useRef(false);
   const setConnected = useGameStore((s) => s.setConnected);
   const setReconnecting = useGameStore((s) => s.setReconnecting);
   const setError = useGameStore((s) => s.setError);
@@ -20,7 +21,11 @@ export function useWebSocket() {
     socket.on('connect', () => {
       setConnected(true);
       setReconnecting(false);
-      bindSocketToStore(socket);
+      // Only bind store listeners once to prevent duplicate handlers on reconnect
+      if (!boundRef.current) {
+        bindSocketToStore(socket);
+        boundRef.current = true;
+      }
     });
 
     socket.on('disconnect', () => {
@@ -50,6 +55,7 @@ export function useWebSocket() {
     }
     destroySocket();
     socketRef.current = null;
+    boundRef.current = false;
     setConnected(false);
   }, [setConnected]);
 
@@ -72,6 +78,7 @@ export function useWebSocket() {
         unbindSocketFromStore(socketRef.current);
         destroySocket();
         socketRef.current = null;
+        boundRef.current = false;
       }
     };
   }, []);

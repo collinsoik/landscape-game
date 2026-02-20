@@ -12,6 +12,7 @@ import {
   joinRoom,
   leaveRoom,
   getPlayer,
+  getPlayersInSession,
   getSessionByCode,
   getSessionById,
   getRoomState,
@@ -68,8 +69,45 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
 // Initialize database on startup
 getDb();
 
-// Track socket -> player mapping
+// Track socket <-> player mapping (bidirectional for O(1) lookups)
 const socketPlayerMap = new Map<string, { playerId: string; sessionId: string }>();
+const playerSocketMap = new Map<string, string>(); // playerId -> socketId
+
+// --- Server-side rate limiter ---
+// Tracks event timestamps per socket per event type. Sliding window approach.
+const rateLimitBuckets = new Map<string, number[]>();
+
+function checkRateLimit(socketId: string, eventType: string, maxEvents: number, windowMs: number): boolean {
+  const key = `${socketId}:${eventType}`;
+  const now = Date.now();
+  let timestamps = rateLimitBuckets.get(key);
+  if (!timestamps) {
+    timestamps = [];
+    rateLimitBuckets.set(key, timestamps);
+  }
+  // Evict expired entries
+  while (timestamps.length > 0 && timestamps[0] <= now - windowMs) {
+    timestamps.shift();
+  }
+  if (timestamps.length >= maxEvents) {
+    return false; // Rate limit exceeded
+  }
+  timestamps.push(now);
+  return true;
+}
+
+// Clean up stale rate limit entries periodically (every 30s)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamps] of rateLimitBuckets.entries()) {
+    while (timestamps.length > 0 && timestamps[0] <= now - 10000) {
+      timestamps.shift();
+    }
+    if (timestamps.length === 0) {
+      rateLimitBuckets.delete(key);
+    }
+  }
+}, 30000);
 
 io.on('connection', (socket) => {
   console.log(`[Socket] Connected: ${socket.id}`);
@@ -85,6 +123,7 @@ io.on('connection', (socket) => {
 
     const { player, session } = result;
     socketPlayerMap.set(socket.id, { playerId: player.id, sessionId: session.id });
+    playerSocketMap.set(player.id, socket.id);
 
     socket.join(`session:${session.id}`);
 
@@ -106,6 +145,7 @@ io.on('connection', (socket) => {
     if (player) {
       playerInfo.sessionId = player.sessionId;
       socketPlayerMap.set(socket.id, playerInfo);
+      playerSocketMap.set(data.playerId, socket.id);
     }
     handleRejoin(socket, data.roomCode, data.playerId, callback);
   });
@@ -117,26 +157,30 @@ io.on('connection', (socket) => {
     leaveRoom(info.playerId);
     socket.to(`session:${info.sessionId}`).emit('room:player-left', { playerId: info.playerId });
     socket.leave(`session:${info.sessionId}`);
+    playerSocketMap.delete(info.playerId);
     socketPlayerMap.delete(socket.id);
   });
 
-  // --- Element events ---
+  // --- Element events (rate-limited) ---
 
   socket.on('element:place', (data) => {
     const info = socketPlayerMap.get(socket.id);
     if (!info) return;
+    if (!checkRateLimit(socket.id, 'place', 10, 1000)) return; // max 10 placements/sec
     handlePlace(io, socket, info.playerId, info.sessionId, data);
   });
 
   socket.on('element:move', (data) => {
     const info = socketPlayerMap.get(socket.id);
     if (!info) return;
+    if (!checkRateLimit(socket.id, 'move', 15, 1000)) return; // max 15 moves/sec
     handleMove(io, socket, info.playerId, info.sessionId, data);
   });
 
   socket.on('element:remove', (data) => {
     const info = socketPlayerMap.get(socket.id);
     if (!info) return;
+    if (!checkRateLimit(socket.id, 'remove', 10, 1000)) return; // max 10 removes/sec
     handleRemove(io, socket, info.playerId, info.sessionId, data);
   });
 
@@ -146,13 +190,21 @@ io.on('connection', (socket) => {
     const info = socketPlayerMap.get(socket.id);
     if (!info) return;
 
+    // Validate chat message
+    if (!data.text || typeof data.text !== 'string') return;
+    const text = data.text.trim().slice(0, 500); // Cap at 500 chars
+    if (text.length === 0) return;
+
+    // Rate limit: max 5 messages per 3 seconds per socket
+    if (!checkRateLimit(socket.id, 'chat', 5, 3000)) return;
+
     const player = getPlayer(info.playerId);
     if (!player) return;
 
     io.to(`session:${info.sessionId}`).emit('chat:message', {
       playerId: player.id,
       playerName: player.name,
-      text: data.text,
+      text,
       timestamp: new Date().toISOString(),
     });
   });
@@ -172,8 +224,7 @@ io.on('connection', (socket) => {
     // If waiting, first assign teams and advance to round 1
     let nextRound = session.currentRound + 1;
     if (session.status === 'waiting') {
-      // Determine team count: for now, auto-assign based on player count
-      const { getPlayersInSession } = require('./game/RoomManager');
+      // Determine team count: auto-assign based on player count
       const players = getPlayersInSession(session.id);
       const numTeams = Math.min(Math.max(1, Math.ceil(players.length / 4)), 8);
       const teams = assignTeams(session.id, numTeams);
@@ -182,16 +233,14 @@ io.on('connection', (socket) => {
       const teamsWithPlayers = getTeamWithPlayers(session.id);
       io.to(`session:${session.id}`).emit('room:teams-assigned', { teams: teamsWithPlayers });
 
-      // Join team socket rooms
+      // Join team socket rooms — O(players) using reverse index instead of O(teams*players*sockets)
       for (const twp of teamsWithPlayers) {
         for (const p of twp.players) {
-          // Find the socket for this player
-          for (const [sid, pInfo] of socketPlayerMap.entries()) {
-            if (pInfo.playerId === p.id) {
-              const playerSocket = io.sockets.sockets.get(sid);
-              if (playerSocket) {
-                playerSocket.join(`team:${twp.team.id}`);
-              }
+          const sid = playerSocketMap.get(p.id);
+          if (sid) {
+            const playerSocket = io.sockets.sockets.get(sid);
+            if (playerSocket) {
+              playerSocket.join(`team:${twp.team.id}`);
             }
           }
         }
@@ -243,7 +292,11 @@ io.on('connection', (socket) => {
       return;
     }
 
-    endRound(session.id, session.currentRound);
+    const ended = endRound(session.id, session.currentRound);
+    if (!ended) {
+      socket.emit('error', { message: 'Round already ended' });
+      return;
+    }
     io.to(`session:${session.id}`).emit('game:round-end', { round: session.currentRound });
     broadcastFinalScores(session.id, session.currentRound);
   });
@@ -279,7 +332,14 @@ io.on('connection', (socket) => {
 
     setPlayerConnected(info.playerId, false);
     socket.to(`session:${info.sessionId}`).emit('room:player-left', { playerId: info.playerId });
+    playerSocketMap.delete(info.playerId);
     socketPlayerMap.delete(socket.id);
+    // Clean up rate limit buckets for this socket
+    for (const key of rateLimitBuckets.keys()) {
+      if (key.startsWith(`${socket.id}:`)) {
+        rateLimitBuckets.delete(key);
+      }
+    }
   });
 });
 

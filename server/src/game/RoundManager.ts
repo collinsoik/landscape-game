@@ -87,8 +87,16 @@ export function startRound(
 
 /**
  * End the current round. Transitions active -> judging.
+ * Returns true if the round was actually ended, false if already ended (guards against double-call race).
  */
-export function endRound(sessionId: string, roundNumber: number): void {
+export function endRound(sessionId: string, roundNumber: number): boolean {
+  const round = getRound(sessionId, roundNumber);
+  if (!round || round.status !== 'active') {
+    // Already ended or not active — prevent duplicate DB writes and broadcasts
+    clearTimer(sessionId);
+    return false;
+  }
+
   const db = getDb();
   db.prepare(`
     UPDATE rounds SET status = 'judging', ended_at = datetime('now')
@@ -97,6 +105,7 @@ export function endRound(sessionId: string, roundNumber: number): void {
 
   updateSession(sessionId, { status: 'judging' });
   clearTimer(sessionId);
+  return true;
 }
 
 /**

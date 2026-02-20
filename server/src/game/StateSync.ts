@@ -97,7 +97,7 @@ export function handlePlace(
   io.to(`session:${sessionId}`).emit('element:placed', { placement });
 
   // Recompute and broadcast score update for this team
-  broadcastTeamScore(io, sessionId, player.teamId, session.currentRound);
+  debouncedBroadcastTeamScore(io, sessionId, player.teamId, session.currentRound);
 }
 
 /**
@@ -133,7 +133,7 @@ export function handleMove(
     y: data.y,
   });
 
-  broadcastTeamScore(io, sessionId, player.teamId!, placement.round);
+  debouncedBroadcastTeamScore(io, sessionId, player.teamId!, placement.round);
 }
 
 /**
@@ -164,18 +164,30 @@ export function handleRemove(
 
   io.to(`session:${sessionId}`).emit('element:removed', { placementId: data.placementId });
 
-  broadcastTeamScore(io, sessionId, player.teamId!, placement.round);
+  debouncedBroadcastTeamScore(io, sessionId, player.teamId!, placement.round);
 }
 
 /**
- * Recompute and broadcast the score for a team.
+ * Debounced score recomputation per team.
+ * With 60 users rapidly placing/moving elements, we avoid recomputing O(n^2) scoring
+ * on every single event. Instead, we batch within a 300ms window per team.
  */
-function broadcastTeamScore(io: AppServer, sessionId: string, teamId: string, round: number): void {
-  const placements = getPlacementsForTeam(teamId, round);
-  const db = getDb();
-  const teamRow = db.prepare('SELECT zone_config FROM teams WHERE id = ?').get(teamId) as any;
-  const zoneConfig: ZoneConfig = teamRow ? JSON.parse(teamRow.zone_config) : { cols: 1, rows: 1, zones: [] };
-  const scores = computeScore(placements, zoneConfig.zones);
+const scoreDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
-  io.to(`session:${sessionId}`).emit('score:update', { teamId, scores });
+function debouncedBroadcastTeamScore(io: AppServer, sessionId: string, teamId: string, round: number): void {
+  const key = `${sessionId}:${teamId}`;
+  const existing = scoreDebounceTimers.get(key);
+  if (existing) clearTimeout(existing);
+
+  scoreDebounceTimers.set(key, setTimeout(() => {
+    scoreDebounceTimers.delete(key);
+    const placements = getPlacementsForTeam(teamId, round);
+    const db = getDb();
+    const teamRow = db.prepare('SELECT zone_config FROM teams WHERE id = ?').get(teamId) as any;
+    const zoneConfig: ZoneConfig = teamRow ? JSON.parse(teamRow.zone_config) : { cols: 1, rows: 1, zones: [] };
+    const scores = computeScore(placements, zoneConfig.zones);
+
+    // Send to team room (only team members need live score updates)
+    io.to(`team:${teamId}`).emit('score:update', { teamId, scores });
+  }, 300));
 }

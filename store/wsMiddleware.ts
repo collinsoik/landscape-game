@@ -126,7 +126,9 @@ export function bindSocketToStore(socket: GameSocket): void {
 
   socket.on('score:final', (data) => {
     store.getState().setFinalResults(data);
-    store.getState().setRoomState({ status: 'finished' });
+    // Don't set status to 'finished' here — the server controls status transitions
+    // via game:round-end. Setting it prematurely after round 1 of a multi-round game
+    // would incorrectly end the session for clients.
   });
 
   socket.on('error', ({ message }) => {

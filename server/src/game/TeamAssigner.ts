@@ -45,68 +45,78 @@ export function assignTeams(sessionId: string, numTeams: number): Team[] {
 
   const teams: Team[] = [];
 
-  for (let t = 0; t < numTeams; t++) {
-    const teamId = uuidv4();
-    const row = Math.floor(t / cols);
-    const col = t % cols;
+  // Prepare statements once outside the loop
+  const insertTeam = db.prepare(`
+    INSERT INTO teams (id, session_id, name, color, zone_config)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  const updatePlayer = db.prepare(
+    'UPDATE players SET team_id = ?, zone_index = ? WHERE id = ?'
+  );
 
-    // Determine which players belong to this team
-    const teamPlayers = players.filter((_, idx) => idx % numTeams === t);
+  // Wrap all DB writes in a single transaction for atomicity and performance
+  // (60 players = ~68 individual writes batched into one disk flush)
+  const assignAll = db.transaction(() => {
+    for (let t = 0; t < numTeams; t++) {
+      const teamId = uuidv4();
+      const row = Math.floor(t / cols);
+      const col = t % cols;
 
-    // Compute zones for team members within the team's grid cell
-    const teamZones: ZoneRect[] = [];
-    const playerCount = teamPlayers.length;
-    const subCols = Math.ceil(Math.sqrt(playerCount || 1));
-    const subRows = Math.ceil((playerCount || 1) / subCols);
-    const subW = zoneWidth / subCols;
-    const subH = zoneHeight / subRows;
+      // Determine which players belong to this team
+      const teamPlayers = players.filter((_, idx) => idx % numTeams === t);
 
-    for (let p = 0; p < playerCount; p++) {
-      const sr = Math.floor(p / subCols);
-      const sc = p % subCols;
-      teamZones.push({
-        index: p,
-        x: col * zoneWidth + sc * subW,
-        y: row * zoneHeight + sr * subH,
-        width: subW,
-        height: subH,
-        playerId: teamPlayers[p].id,
+      // Compute zones for team members within the team's grid cell
+      const teamZones: ZoneRect[] = [];
+      const playerCount = teamPlayers.length;
+      const subCols = Math.ceil(Math.sqrt(playerCount || 1));
+      const subRows = Math.ceil((playerCount || 1) / subCols);
+      const subW = zoneWidth / subCols;
+      const subH = zoneHeight / subRows;
+
+      for (let p = 0; p < playerCount; p++) {
+        const sr = Math.floor(p / subCols);
+        const sc = p % subCols;
+        teamZones.push({
+          index: p,
+          x: col * zoneWidth + sc * subW,
+          y: row * zoneHeight + sr * subH,
+          width: subW,
+          height: subH,
+          playerId: teamPlayers[p].id,
+        });
+      }
+
+      // If there are no players, still create one empty zone
+      if (playerCount === 0) {
+        teamZones.push({
+          index: 0,
+          x: col * zoneWidth,
+          y: row * zoneHeight,
+          width: zoneWidth,
+          height: zoneHeight,
+          playerId: null,
+        });
+      }
+
+      const zoneConfig: ZoneConfig = { cols: subCols, rows: subRows, zones: teamZones };
+
+      insertTeam.run(teamId, sessionId, TEAM_NAMES[t], TEAM_COLORS[t], JSON.stringify(zoneConfig));
+
+      // Update player team_id and zone_index
+      for (let p = 0; p < teamPlayers.length; p++) {
+        updatePlayer.run(teamId, p, teamPlayers[p].id);
+      }
+
+      teams.push({
+        id: teamId,
+        sessionId,
+        name: TEAM_NAMES[t],
+        color: TEAM_COLORS[t],
+        zoneConfig: JSON.stringify(zoneConfig),
       });
     }
+  });
 
-    // If there are no players, still create one empty zone
-    if (playerCount === 0) {
-      teamZones.push({
-        index: 0,
-        x: col * zoneWidth,
-        y: row * zoneHeight,
-        width: zoneWidth,
-        height: zoneHeight,
-        playerId: null,
-      });
-    }
-
-    const zoneConfig: ZoneConfig = { cols: subCols, rows: subRows, zones: teamZones };
-
-    db.prepare(`
-      INSERT INTO teams (id, session_id, name, color, zone_config)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(teamId, sessionId, TEAM_NAMES[t], TEAM_COLORS[t], JSON.stringify(zoneConfig));
-
-    // Update player team_id and zone_index
-    for (let p = 0; p < teamPlayers.length; p++) {
-      db.prepare('UPDATE players SET team_id = ?, zone_index = ? WHERE id = ?')
-        .run(teamId, p, teamPlayers[p].id);
-    }
-
-    teams.push({
-      id: teamId,
-      sessionId,
-      name: TEAM_NAMES[t],
-      color: TEAM_COLORS[t],
-      zoneConfig: JSON.stringify(zoneConfig),
-    });
-  }
-
+  assignAll();
   return teams;
 }
