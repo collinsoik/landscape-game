@@ -1,65 +1,94 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import PixelButton from '@/components/shared/PixelButton';
+import PixelCard from '@/components/shared/PixelCard';
+import PixelInput from '@/components/shared/PixelInput';
+
+export default function LandingPage() {
+  const router = useRouter();
+  const [roomCode, setRoomCode] = useState('');
+  const [playerName, setPlayerName] = useState('');
+  const [error, setError] = useState('');
+
+  const handleJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    const code = roomCode.trim().toUpperCase();
+    const name = playerName.trim();
+
+    if (code.length !== 6 || !/^[A-Z0-9]+$/.test(code)) {
+      setError('Room code must be 6 alphanumeric characters.');
+      return;
+    }
+    if (name.length < 1 || name.length > 20) {
+      setError('Name must be between 1 and 20 characters.');
+      return;
+    }
+
+    // Store name in sessionStorage for the lobby page to use
+    sessionStorage.setItem('playerName', name);
+    router.push(`/room/${code}`);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      {/* Title */}
+      <div className="mb-8 text-center">
+        <h1
+          className="text-4xl font-bold uppercase tracking-widest text-[#8bba6a] mb-2"
+          style={{
+            textShadow: '3px 3px 0 #1a3a1a, -1px -1px 0 #0d1f0d',
+          }}
+        >
+          Landscape Builders
+        </h1>
+        <p className="text-sm text-[#6a9a4a] max-w-md">
+          Collaborate with your team to design a biodiverse, sustainable
+          landscape. Place trees, flowers, water features and more to create
+          thriving ecosystems.
+        </p>
+      </div>
+
+      {/* Join form */}
+      <PixelCard title="Join a Game" className="w-full max-w-sm">
+        <form onSubmit={handleJoin} className="flex flex-col gap-4">
+          <PixelInput
+            label="Room Code"
+            placeholder="e.g. ABC123"
+            value={roomCode}
+            onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+            maxLength={6}
+            autoComplete="off"
+          />
+          <PixelInput
+            label="Your Name"
+            placeholder="Enter your name"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            maxLength={20}
+            autoComplete="off"
+          />
+
+          {error && (
+            <p className="text-xs text-[#c0392b]">{error}</p>
+          )}
+
+          <PixelButton type="submit" variant="primary" size="lg">
+            Join Game
+          </PixelButton>
+        </form>
+      </PixelCard>
+
+      {/* Admin link */}
+      <p className="mt-6 text-xs text-[#4a6a3a]">
+        Are you a host?{' '}
+        <a href="/admin" className="text-[#8bba6a] underline hover:text-[#a8d880]">
+          Create a room
+        </a>
+      </p>
     </div>
   );
 }

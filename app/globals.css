@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f1a0f;
+  --foreground: #d4e8c2;
+  --pixel-green-dark: #1a3a1a;
+  --pixel-green: #2d5a27;
+  --pixel-green-light: #8bba6a;
+  --pixel-earth: #8b6914;
+  --pixel-brown: #7a5230;
 }
 
 @theme inline {
@@ -12,15 +17,112 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Pixel-art scanline overlay for atmosphere */
+.pixel-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* Pixel art rendering for canvas and sprites */
+canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.pixel-render {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Pixel border utility using box-shadow */
+.pixel-border {
+  box-shadow:
+    -2px 0 0 0 var(--pixel-green),
+    2px 0 0 0 var(--pixel-green),
+    0 -2px 0 0 var(--pixel-green),
+    0 2px 0 0 var(--pixel-green),
+    -2px -2px 0 0 var(--pixel-green),
+    2px -2px 0 0 var(--pixel-green),
+    -2px 2px 0 0 var(--pixel-green),
+    2px 2px 0 0 var(--pixel-green);
+}
+
+.pixel-border-light {
+  box-shadow:
+    -2px 0 0 0 var(--pixel-green-light),
+    2px 0 0 0 var(--pixel-green-light),
+    0 -2px 0 0 var(--pixel-green-light),
+    0 2px 0 0 var(--pixel-green-light);
+}
+
+/* Custom scrollbar for sidebar */
+.pixel-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pixel-scrollbar::-webkit-scrollbar-track {
+  background: var(--pixel-green-dark);
+}
+
+.pixel-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--pixel-green);
+  border: 2px solid var(--pixel-green-dark);
+}
+
+/* Game layout */
+.game-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 56px 1fr;
+  grid-template-areas:
+    "sidebar hud"
+    "sidebar canvas";
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game-sidebar {
+  grid-area: sidebar;
+}
+
+.game-hud {
+  grid-area: hud;
+}
+
+.game-canvas {
+  grid-area: canvas;
+}
+
+/* Animations */
+@keyframes score-pop {
+  0% { transform: scale(0.5) translateY(0); opacity: 1; }
+  100% { transform: scale(1.2) translateY(-20px); opacity: 0; }
+}
+
+.score-pop {
+  animation: score-pop 1s ease-out forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px rgba(139, 186, 106, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(139, 186, 106, 0.6); }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }

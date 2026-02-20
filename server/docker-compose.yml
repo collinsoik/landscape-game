@@ -1,0 +1,35 @@
+services:
+  game-server:
+    build: .
+    container_name: landscape-game-server
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - game-data:/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_PATH=/data/game.db
+      - UPLOAD_DIR=/data/uploads
+      - CORS_ORIGIN=https://landscape-game.vercel.app
+      - ADMIN_SECRET=${ADMIN_SECRET:-changeme}
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: landscape-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - game-server
+
+volumes:
+  game-data:
+    driver: local

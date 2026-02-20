@@ -1,0 +1,90 @@
+import type { InteractionRule, EcosystemPattern } from '../types/models';
+
+// Duplicated from config/scoring-rules.ts to avoid @/ alias issues on the server
+const INTERACTION_RULES: InteractionRule[] = [
+  // TREE SYNERGIES
+  { elementA: 'oak_tree', elementB: 'shade_fern', radius: 80, effect: 'synergy', scoreCategory: 'ecosystemHealth', value: 5, description: 'Fern thrives in oak shade' },
+  { elementA: 'oak_tree', elementB: 'moss_patch', radius: 80, effect: 'synergy', scoreCategory: 'ecosystemHealth', value: 4, description: 'Moss benefits from tree shade and moisture' },
+  { elementA: 'oak_tree', elementB: 'birdhouse', radius: 60, effect: 'synergy', scoreCategory: 'biodiversity', value: 6, description: 'Birdhouse in oak attracts cavity nesters' },
+  { elementA: 'fruit_tree', elementB: 'wildflower_patch', radius: 100, effect: 'synergy', scoreCategory: 'biodiversity', value: 5, description: 'Pollinators visit both flowers and fruit trees' },
+  { elementA: 'fruit_tree', elementB: 'insect_hotel', radius: 80, effect: 'synergy', scoreCategory: 'biodiversity', value: 6, description: 'Solitary bees pollinate fruit trees' },
+  { elementA: 'pine_tree', elementB: 'log_pile', radius: 80, effect: 'synergy', scoreCategory: 'ecosystemHealth', value: 4, description: 'Pine needles and logs create woodland habitat' },
+  { elementA: 'maple_tree', elementB: 'native_shrub', radius: 100, effect: 'synergy', scoreCategory: 'aesthetics', value: 4, description: 'Layered canopy creates visual depth' },
+  // WATER SYNERGIES
+  { elementA: 'rain_garden', elementB: 'native_grass', radius: 80, effect: 'synergy', scoreCategory: 'sustainability', value: 6, description: 'Grass filters water flowing into rain garden' },
+  { elementA: 'rain_garden', elementB: 'clover_ground', radius: 80, effect: 'synergy', scoreCategory: 'sustainability', value: 5, description: 'Clover enriches soil around rain garden' },
+  { elementA: 'small_pond', elementB: 'native_shrub', radius: 100, effect: 'synergy', scoreCategory: 'biodiversity', value: 7, description: 'Shrubs near water attract diverse wildlife' },
+  { elementA: 'small_pond', elementB: 'shade_fern', radius: 80, effect: 'synergy', scoreCategory: 'aesthetics', value: 5, description: 'Ferns by the pond create a natural look' },
+  { elementA: 'small_pond', elementB: 'log_pile', radius: 80, effect: 'synergy', scoreCategory: 'biodiversity', value: 5, description: 'Log pile near water supports amphibians' },
+  { elementA: 'birdbath', elementB: 'wildflower_patch', radius: 80, effect: 'synergy', scoreCategory: 'biodiversity', value: 4, description: 'Birds visit bath and then forage nearby flowers' },
+  { elementA: 'birdbath', elementB: 'birdhouse', radius: 100, effect: 'synergy', scoreCategory: 'biodiversity', value: 5, description: 'Water and shelter together attract more birds' },
+  // POLLINATOR SYNERGIES
+  { elementA: 'wildflower_patch', elementB: 'insect_hotel', radius: 80, effect: 'synergy', scoreCategory: 'biodiversity', value: 7, description: 'Insect hotel residents pollinate nearby flowers' },
+  { elementA: 'wildflower_patch', elementB: 'sunflower_cluster', radius: 100, effect: 'synergy', scoreCategory: 'aesthetics', value: 4, description: 'Diverse flower display creates vibrant garden' },
+  { elementA: 'sunflower_cluster', elementB: 'berry_bush', radius: 80, effect: 'synergy', scoreCategory: 'biodiversity', value: 4, description: 'Sequential food sources support pollinators' },
+  { elementA: 'clover_ground', elementB: 'insect_hotel', radius: 80, effect: 'synergy', scoreCategory: 'ecosystemHealth', value: 5, description: 'Clover provides forage for hotel-nesting bees' },
+  // SUSTAINABILITY SYNERGIES
+  { elementA: 'compost_bin', elementB: 'native_grass', radius: 80, effect: 'synergy', scoreCategory: 'sustainability', value: 5, description: 'Compost enriches grass growth' },
+  { elementA: 'compost_bin', elementB: 'wildflower_patch', radius: 80, effect: 'synergy', scoreCategory: 'sustainability', value: 4, description: 'Compost supports flower growth' },
+  { elementA: 'rock_garden', elementB: 'native_grass', radius: 60, effect: 'synergy', scoreCategory: 'aesthetics', value: 3, description: 'Rock and grass create natural landscaping' },
+  { elementA: 'hedge_row', elementB: 'birdhouse', radius: 80, effect: 'synergy', scoreCategory: 'biodiversity', value: 4, description: 'Hedge provides shelter near nesting site' },
+  // CONFLICTS
+  { elementA: 'invasive_vine', elementB: 'native_shrub', radius: 100, effect: 'conflict', scoreCategory: 'biodiversity', value: -8, description: 'Invasive vine smothers native shrub!' },
+  { elementA: 'invasive_vine', elementB: 'wildflower_patch', radius: 100, effect: 'conflict', scoreCategory: 'biodiversity', value: -7, description: 'Invasive vine overtakes wildflowers!' },
+  { elementA: 'invasive_vine', elementB: 'oak_tree', radius: 80, effect: 'conflict', scoreCategory: 'ecosystemHealth', value: -6, description: 'Vine strangles young oak tree!' },
+  { elementA: 'invasive_grass', elementB: 'native_grass', radius: 100, effect: 'conflict', scoreCategory: 'biodiversity', value: -6, description: 'Invasive grass outcompetes native species!' },
+  { elementA: 'invasive_grass', elementB: 'wildflower_patch', radius: 100, effect: 'conflict', scoreCategory: 'biodiversity', value: -5, description: 'Invasive grass crowds out wildflowers!' },
+  { elementA: 'invasive_grass', elementB: 'clover_ground', radius: 80, effect: 'conflict', scoreCategory: 'ecosystemHealth', value: -5, description: 'Invasive grass displaces beneficial clover!' },
+  // SHADE CONFLICTS
+  { elementA: 'oak_tree', elementB: 'sunflower_cluster', radius: 60, effect: 'conflict', scoreCategory: 'ecosystemHealth', value: -3, description: 'Sunflowers struggle in oak tree shade' },
+  { elementA: 'pine_tree', elementB: 'wildflower_patch', radius: 60, effect: 'conflict', scoreCategory: 'ecosystemHealth', value: -3, description: 'Pine acidic soil and shade harm wildflowers' },
+  // CROWDING CONFLICTS
+  { elementA: 'oak_tree', elementB: 'oak_tree', radius: 50, effect: 'conflict', scoreCategory: 'ecosystemHealth', value: -4, description: 'Trees planted too close compete for resources' },
+  { elementA: 'rain_garden', elementB: 'rain_garden', radius: 80, effect: 'conflict', scoreCategory: 'sustainability', value: -3, description: 'Rain gardens too close oversaturate the area' },
+];
+
+const ECOSYSTEM_PATTERNS: EcosystemPattern[] = [
+  { name: 'Pollinator Garden', description: 'A cluster of pollinator-friendly plants creates a buzzing paradise!', requiredElements: [{ type: 'wildflower_patch', minCount: 1 }, { type: 'sunflower_cluster', minCount: 1 }, { type: 'insect_hotel', minCount: 1 }], maxRadius: 150, bonusPoints: 20, category: 'biodiversity' },
+  { name: 'Rain Garden Ecosystem', description: 'A water-smart garden that captures runoff and supports wetland plants.', requiredElements: [{ type: 'rain_garden', minCount: 1 }, { type: 'native_grass', minCount: 1 }, { type: 'shade_fern', minCount: 1 }], maxRadius: 120, bonusPoints: 25, category: 'sustainability' },
+  { name: 'Wildlife Corridor', description: 'Connected native plants form a highway for local wildlife.', requiredElements: [{ type: 'hedge_row', minCount: 2 }, { type: 'native_shrub', minCount: 1 }, { type: 'log_pile', minCount: 1 }], maxRadius: 200, bonusPoints: 30, category: 'ecosystemHealth' },
+  { name: 'Bird Sanctuary', description: 'Everything a bird needs: food, water, shelter, and nesting.', requiredElements: [{ type: 'birdhouse', minCount: 1 }, { type: 'birdbath', minCount: 1 }, { type: 'berry_bush', minCount: 1 }], maxRadius: 150, bonusPoints: 22, category: 'biodiversity' },
+  { name: 'Woodland Edge', description: 'A natural forest edge with trees, understory, and ground cover.', requiredElements: [{ type: 'oak_tree', minCount: 1 }, { type: 'native_shrub', minCount: 1 }, { type: 'moss_patch', minCount: 1 }], maxRadius: 130, bonusPoints: 18, category: 'ecosystemHealth' },
+  { name: 'Sustainability Hub', description: 'A green recycling center with composting and water management.', requiredElements: [{ type: 'compost_bin', minCount: 1 }, { type: 'rain_garden', minCount: 1 }, { type: 'clover_ground', minCount: 1 }], maxRadius: 150, bonusPoints: 22, category: 'sustainability' },
+  { name: 'Native Meadow', description: 'A restored meadow of native grasses and wildflowers.', requiredElements: [{ type: 'native_grass', minCount: 2 }, { type: 'wildflower_patch', minCount: 2 }], maxRadius: 180, bonusPoints: 15, category: 'aesthetics' },
+  { name: 'Orchard Grove', description: 'A productive fruit grove with pollinators and soil health.', requiredElements: [{ type: 'fruit_tree', minCount: 2 }, { type: 'clover_ground', minCount: 1 }, { type: 'insect_hotel', minCount: 1 }], maxRadius: 160, bonusPoints: 20, category: 'sustainability' },
+];
+
+export const CROSS_ZONE_BONUS = {
+  borderDistance: 30,
+  bonusPerElement: 1.5,
+  maxBonus: 15,
+};
+
+export const DIVERSITY_BONUS = {
+  pointsPerCategory: 2,
+};
+
+// Build lookup index: key = "typeA|typeB" -> rules[]
+const ruleIndex = new Map<string, InteractionRule[]>();
+for (const rule of INTERACTION_RULES) {
+  const keyAB = `${rule.elementA}|${rule.elementB}`;
+  const keyBA = `${rule.elementB}|${rule.elementA}`;
+  if (!ruleIndex.has(keyAB)) ruleIndex.set(keyAB, []);
+  ruleIndex.get(keyAB)!.push(rule);
+  if (keyAB !== keyBA) {
+    if (!ruleIndex.has(keyBA)) ruleIndex.set(keyBA, []);
+    ruleIndex.get(keyBA)!.push(rule);
+  }
+}
+
+export function getRulesForPair(typeA: string, typeB: string): InteractionRule[] {
+  return ruleIndex.get(`${typeA}|${typeB}`) || [];
+}
+
+export function getAllRules(): InteractionRule[] {
+  return INTERACTION_RULES;
+}
+
+export function getAllPatterns(): EcosystemPattern[] {
+  return ECOSYSTEM_PATTERNS;
+}
