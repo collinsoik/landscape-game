@@ -19,6 +19,7 @@ export function bindSocketToStore(socket: GameSocket): void {
       canvasHeight: data.session.canvasHeight,
       satelliteImagePath: data.session.satelliteImagePath,
       roundTimeRemaining: data.roundTimeRemaining ?? null,
+      paused: data.paused ?? false,
     });
     store.getState().setPlayers(data.players);
     store.getState().setTeams(data.teams);
@@ -72,12 +73,13 @@ export function bindSocketToStore(socket: GameSocket): void {
     }
   });
 
-  socket.on('game:round-start', ({ round, duration, areaLabel }) => {
+  socket.on('game:round-start', ({ round, duration, areaLabel, paused }) => {
     store.getState().setRoomState({
       status: 'playing',
       currentRound: round,
       roundTimeRemaining: duration,
-      paused: false,
+      roundDuration: duration,
+      paused: paused ?? false,
       areaLabel,
     });
   });

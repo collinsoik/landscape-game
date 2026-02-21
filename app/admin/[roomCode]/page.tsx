@@ -101,7 +101,9 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
             {room.status === 'playing' && room.paused && (
               <>
                 <PixelButton variant="primary" onClick={resumeGame}>
-                  Resume
+                  {room.roundDuration !== null && room.roundTimeRemaining === room.roundDuration
+                    ? 'Start Timer'
+                    : 'Resume'}
                 </PixelButton>
                 <PixelButton variant="danger" onClick={() => setConfirmEndRound(true)}>
                   End Round
@@ -138,6 +140,11 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
             >
               Time remaining: {Math.floor(room.roundTimeRemaining / 60)}:
               {(room.roundTimeRemaining % 60).toString().padStart(2, '0')}
+            </p>
+          )}
+          {room.paused && room.roundDuration !== null && room.roundTimeRemaining === room.roundDuration && (
+            <p className="text-xs text-[#f39c12] mt-2">
+              Students are exploring the tutorial. Click Start Timer when ready.
             </p>
           )}
         </PixelCard>

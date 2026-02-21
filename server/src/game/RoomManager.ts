@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection';
 import type { Session, Player, Team, Placement, ZoneConfig } from '../types/models';
 import type { RoomStateData, TeamWithPlayers } from '../types/events';
-import { getTimeRemaining } from './RoundManager';
+import { getTimeRemaining, isTimerPaused } from './RoundManager';
 
 function generateRoomCode(length: number): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I,O,0,1 to avoid confusion
@@ -167,6 +167,7 @@ export function getRoomState(sessionId: string): RoomStateData | undefined {
 
   if (session.status === 'playing') {
     state.roundTimeRemaining = getTimeRemaining(sessionId);
+    state.paused = isTimerPaused(sessionId);
   }
 
   return state;

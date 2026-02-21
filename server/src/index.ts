@@ -22,7 +22,7 @@ import {
   getTeamsInSession,
 } from './game/RoomManager';
 import { assignTeams } from './game/TeamAssigner';
-import { startRound, endRound, pauseRound, resumeRound, getTimeRemaining, getRound } from './game/RoundManager';
+import { startRound, endRound, pauseRound, resumeRound, getTimeRemaining, isTimerPaused, getRound } from './game/RoundManager';
 import { handlePlace, handleMove, handleRemove } from './game/StateSync';
 import { handleRejoin } from './game/ReconnectionHandler';
 import { computeScore } from './scoring/ScoringEngine';
@@ -228,8 +228,9 @@ io.on('connection', (socket) => {
     console.log(`[Admin] start-round authorized for session ${session.id}, status=${session.status}`);
 
     // If waiting, first assign teams and advance to round 1
+    const isFirstStart = session.status === 'waiting';
     let nextRound = session.currentRound + 1;
-    if (session.status === 'waiting') {
+    if (isFirstStart) {
       // Determine team count: auto-assign based on player count
       const players = getPlayersInSession(session.id);
       const numTeams = Math.min(Math.max(1, Math.ceil(players.length / 4)), 8);
@@ -270,13 +271,15 @@ io.on('connection', (socket) => {
         () => {
           io.to(`session:${session.id}`).emit('game:round-end', { round: nextRound });
           broadcastFinalScores(session.id, nextRound);
-        }
+        },
+        isFirstStart
       );
 
       io.to(`session:${session.id}`).emit('game:round-start', {
         round: nextRound,
         duration: round.durationSeconds,
         areaLabel: round.areaLabel,
+        paused: isFirstStart,
       });
     } catch (err: any) {
       socket.emit('error', { message: err.message });

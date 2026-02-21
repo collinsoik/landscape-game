@@ -31,6 +31,7 @@ export default function GamePage({ params }: GamePageProps) {
   const totalRounds = useGameStore((s) => s.room.totalRounds);
   const timeRemaining = useGameStore((s) => s.room.roundTimeRemaining);
   const paused = useGameStore((s) => s.room.paused);
+  const roundDuration = useGameStore((s) => s.room.roundDuration);
   const areaLabel = useGameStore((s) => s.room.areaLabel);
   const canvasWidth = useGameStore((s) => s.room.canvasWidth);
   const canvasHeight = useGameStore((s) => s.room.canvasHeight);
@@ -94,6 +95,7 @@ export default function GamePage({ params }: GamePageProps) {
           canvasHeight: res.state.session.canvasHeight,
           satelliteImagePath: res.state.session.satelliteImagePath,
           roundTimeRemaining: res.state.roundTimeRemaining ?? null,
+          paused: res.state.paused ?? false,
         });
         store.setPlayers(res.state.players);
         store.setTeams(res.state.teams);
@@ -181,7 +183,9 @@ export default function GamePage({ params }: GamePageProps) {
         <div className="flex items-center gap-4">
           {paused && (
             <span className="text-xs font-bold uppercase text-[#f39c12] animate-pulse">
-              Paused
+              {roundDuration !== null && timeRemaining === roundDuration
+                ? 'Explore the tutorial! Timer starts when your teacher is ready'
+                : 'Paused'}
             </span>
           )}
           {timeRemaining !== null && (

@@ -88,6 +88,7 @@ export interface RoomStateData {
   placements: Placement[];
   scores: Record<string, ScoreBreakdown>;
   roundTimeRemaining?: number;
+  paused?: boolean;
 }
 
 export interface TeamWithPlayers {
@@ -112,6 +113,7 @@ export interface RoundStartData {
   round: number;
   duration: number;
   areaLabel: string;
+  paused?: boolean;
 }
 
 export interface FinalScoreData {

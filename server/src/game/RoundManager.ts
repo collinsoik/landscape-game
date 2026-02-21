@@ -47,7 +47,8 @@ export function startRound(
   sessionId: string,
   roundNumber: number,
   onTick: (remaining: number) => void,
-  onEnd: () => void
+  onEnd: () => void,
+  startPaused: boolean = false
 ): Round {
   const session = getSessionById(sessionId);
   if (!session) throw new Error('Session not found');
@@ -67,7 +68,7 @@ export function startRound(
   const state: TimerState = {
     remaining: round.durationSeconds,
     interval: null,
-    paused: false,
+    paused: startPaused,
   };
 
   state.interval = setInterval(() => {
@@ -151,6 +152,14 @@ export function resumeRound(sessionId: string): number {
 export function getTimeRemaining(sessionId: string): number {
   const state = timers.get(sessionId);
   return state ? state.remaining : 0;
+}
+
+/**
+ * Check if the timer is currently paused.
+ */
+export function isTimerPaused(sessionId: string): boolean {
+  const state = timers.get(sessionId);
+  return state ? state.paused : false;
 }
 
 function clearTimer(sessionId: string): void {

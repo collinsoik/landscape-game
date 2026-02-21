@@ -10,6 +10,7 @@ export interface RoomState {
   canvasHeight: number;
   satelliteImagePath: string | null;
   roundTimeRemaining: number | null;
+  roundDuration: number | null;
   paused: boolean;
   areaLabel: string;
 }
@@ -39,6 +40,7 @@ const initialRoom: RoomState = {
   canvasHeight: 800,
   satelliteImagePath: null,
   roundTimeRemaining: null,
+  roundDuration: null,
   paused: false,
   areaLabel: '',
 };
