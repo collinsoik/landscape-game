@@ -124,19 +124,22 @@ export default function GamePage({ params }: GamePageProps) {
     }
   }, [status, roomCode, router]);
 
-  // Socket emitter handlers
+  // Socket emitter handlers – blocked while timer is paused
   const handlePlaceElement = useCallback((elementType: string, x: number, y: number) => {
+    if (paused) return;
     emit('element:place', { elementType, x, y });
-  }, [emit]);
+  }, [emit, paused]);
 
   const handleMovePlacement = useCallback((placementId: string, x: number, y: number) => {
+    if (paused) return;
     emit('element:move', { placementId, x, y });
-  }, [emit]);
+  }, [emit, paused]);
 
   const handleRemovePlacement = useCallback((placementId: string) => {
+    if (paused) return;
     emit('element:remove', { placementId });
     setSelectedPlacementId(null);
-  }, [emit]);
+  }, [emit, paused]);
 
   const handleSelectPlacement = useCallback((id: string | null) => {
     setSelectedPlacementId(id);
@@ -281,6 +284,7 @@ export default function GamePage({ params }: GamePageProps) {
           <ElementSidebar
             selectedElementType={selectedElementType}
             onSelectElement={handleSelectElement}
+            disabled={paused}
           />
         </div>
 

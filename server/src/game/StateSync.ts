@@ -5,6 +5,7 @@ import type { Placement, ZoneConfig } from '../types/models';
 import type { ServerToClientEvents, ClientToServerEvents } from '../types/events';
 import { getElement } from '../scoring/ElementCatalog';
 import { getPlayer, getSessionById, getPlacementsForTeam } from './RoomManager';
+import { isTimerPaused } from './RoundManager';
 import { computeScore } from '../scoring/ScoringEngine';
 
 type AppServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -28,6 +29,11 @@ export function handlePlace(
   const session = getSessionById(sessionId);
   if (!session || session.status !== 'playing') {
     socket.emit('element:rejected', { reason: 'Round is not active' });
+    return;
+  }
+
+  if (isTimerPaused(sessionId)) {
+    socket.emit('element:rejected', { reason: 'Timer has not started yet' });
     return;
   }
 
@@ -110,6 +116,11 @@ export function handleMove(
   sessionId: string,
   data: { placementId: string; x: number; y: number }
 ): void {
+  if (isTimerPaused(sessionId)) {
+    socket.emit('element:rejected', { reason: 'Timer has not started yet' });
+    return;
+  }
+
   const db = getDb();
   const placement = db.prepare('SELECT * FROM placements WHERE id = ? AND session_id = ?').get(data.placementId, sessionId) as any;
 
@@ -146,6 +157,11 @@ export function handleRemove(
   sessionId: string,
   data: { placementId: string }
 ): void {
+  if (isTimerPaused(sessionId)) {
+    socket.emit('element:rejected', { reason: 'Timer has not started yet' });
+    return;
+  }
+
   const db = getDb();
   const placement = db.prepare('SELECT * FROM placements WHERE id = ? AND session_id = ?').get(data.placementId, sessionId) as any;
 

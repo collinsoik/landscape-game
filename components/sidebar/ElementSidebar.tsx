@@ -8,11 +8,13 @@ import ElementCategory from './ElementCategory';
 interface ElementSidebarProps {
   selectedElementType: string | null;
   onSelectElement: (type: string) => void;
+  disabled?: boolean;
 }
 
 export default function ElementSidebar({
   selectedElementType,
   onSelectElement,
+  disabled,
 }: ElementSidebarProps) {
   // Group elements by category
   const grouped = useMemo(() => {
@@ -26,14 +28,17 @@ export default function ElementSidebar({
   }, []);
 
   return (
-    <div className="w-full md:w-64 flex-shrink-0 bg-neutral-850 border-l border-neutral-700 flex flex-col h-full"
+    <div className={[
+      'w-full md:w-64 flex-shrink-0 bg-neutral-850 border-l border-neutral-700 flex flex-col h-full',
+      disabled ? 'opacity-50 pointer-events-none' : '',
+    ].join(' ')}
       style={{ backgroundColor: '#1a1a1a' }}
     >
       {/* Header */}
       <div className="px-3 py-2 border-b border-neutral-700">
         <h2 className="text-sm font-semibold text-white">Elements</h2>
         <p className="text-[10px] text-neutral-400 mt-0.5">
-          Drag or tap to place on canvas
+          {disabled ? 'Waiting for teacher to start the timer...' : 'Drag or tap to place on canvas'}
         </p>
       </div>
 
