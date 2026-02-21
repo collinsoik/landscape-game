@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "server/src/db", "server/src/routes", "server/src/game", "server/src/index.ts"]
 }

@@ -40,7 +40,7 @@ export default function AdminCreatePage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_WS_URL ?? 'http://localhost:3001';
-      const res = await fetch(`${apiUrl}/api/sessions`, {
+      const res = await fetch(`${apiUrl}/api/rooms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -55,8 +55,12 @@ export default function AdminCreatePage() {
         throw new Error(data.error || 'Failed to create room');
       }
 
-      const data: CreateRoomResponse = await res.json();
-      setResult(data);
+      const data = await res.json();
+      setResult({
+        roomCode: data.session?.roomCode ?? data.roomCode,
+        adminToken: data.adminToken,
+        judgeToken: data.judgeToken,
+      });
 
       // Store admin token for later use
       sessionStorage.setItem(`admin_${data.roomCode}`, data.adminToken);

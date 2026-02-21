@@ -213,13 +213,18 @@ io.on('connection', (socket) => {
 
   socket.on('admin:start-round', (data) => {
     const info = socketPlayerMap.get(socket.id);
-    if (!info) return;
+    if (!info) {
+      console.log(`[Admin] start-round rejected: socket ${socket.id} not in socketPlayerMap`);
+      return;
+    }
 
     const session = getSessionById(info.sessionId);
     if (!session || session.adminToken !== data.adminToken) {
+      console.log(`[Admin] start-round auth failed: expected=${session?.adminToken}, got=${data.adminToken}`);
       socket.emit('error', { message: 'Unauthorized', code: 'AUTH_FAILED' });
       return;
     }
+    console.log(`[Admin] start-round authorized for session ${session.id}, status=${session.status}`);
 
     // If waiting, first assign teams and advance to round 1
     let nextRound = session.currentRound + 1;
