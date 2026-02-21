@@ -40,6 +40,8 @@ export default function GamePage({ params }: GamePageProps) {
   const zoneConfig = useGameStore((s) => s.zoneConfig);
   const myZoneIndex = useGameStore((s) => s.myZoneIndex);
 
+  const connected = useGameStore((s) => s.connected);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
 
@@ -56,6 +58,42 @@ export default function GamePage({ params }: GamePageProps) {
   useEffect(() => {
     connect();
   }, [connect]);
+
+  // Rejoin room after socket (re)connects.
+  // The lobby page destroys the socket on unmount during navigation,
+  // so this new socket needs to identify itself to the server.
+  useEffect(() => {
+    if (!connected || !playerId) return;
+
+    emit('room:rejoin', { roomCode, playerId }, (res) => {
+      if (res.success && res.state) {
+        const store = useGameStore.getState();
+        store.setRoomState({
+          sessionName: res.state.session.name,
+          status: res.state.session.status,
+          currentRound: res.state.session.currentRound,
+          totalRounds: res.state.session.totalRounds,
+          canvasWidth: res.state.session.canvasWidth,
+          canvasHeight: res.state.session.canvasHeight,
+          satelliteImagePath: res.state.session.satelliteImagePath,
+          roundTimeRemaining: res.state.roundTimeRemaining ?? null,
+        });
+        store.setPlayers(res.state.players);
+        store.setTeams(res.state.teams);
+        store.setPlacements(res.state.placements);
+
+        // Find my zone config
+        for (const tw of res.state.teams) {
+          const myPlayer = tw.players.find((p) => p.id === playerId);
+          if (myPlayer) {
+            store.setZoneConfig(tw.zoneConfig);
+            store.setMyZoneIndex(myPlayer.zoneIndex);
+            break;
+          }
+        }
+      }
+    });
+  }, [connected, playerId, roomCode, emit]);
 
   useEffect(() => {
     if (status === 'finished') {
