@@ -85,16 +85,25 @@ export default function JudgePage({ params }: JudgePageProps) {
       const judgeToken = sessionStorage.getItem(`judge_${roomCode}`) ?? '';
       const apiUrl = process.env.NEXT_PUBLIC_WS_URL ?? 'http://localhost:3001';
       const res = await fetch(
-        `${apiUrl}/api/sessions/${roomCode}/rounds/${room.currentRound}/judge-scores`,
+        `${apiUrl}/api/rooms/${roomCode}/judge-scores`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${judgeToken}`,
           },
           body: JSON.stringify({
-            teamId,
-            ...form,
+            judgeToken,
+            round: room.currentRound,
+            scores: [
+              {
+                teamId,
+                biodiversity: form.biodiversity,
+                sustainability: form.sustainability,
+                aesthetics: form.aesthetics,
+                ecosystemHealth: form.ecosystemHealth,
+                comment: form.comment,
+              },
+            ],
           }),
         }
       );
