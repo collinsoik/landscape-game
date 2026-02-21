@@ -7,6 +7,7 @@ import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
 import PixelInput from '@/components/shared/PixelInput';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import LandscapePreview from '@/components/game/LandscapePreview';
 
 interface JudgePageProps {
   params: Promise<{ roomCode: string }>;
@@ -43,6 +44,10 @@ export default function JudgePage({ params }: JudgePageProps) {
   const room = useGameStore((s) => s.room);
   const scores = useGameStore((s) => s.scores);
   const connected = useGameStore((s) => s.connected);
+  const placements = useGameStore((s) => s.placements);
+  const canvasWidth = useGameStore((s) => s.room.canvasWidth);
+  const canvasHeight = useGameStore((s) => s.room.canvasHeight);
+  const satelliteImagePath = useGameStore((s) => s.room.satelliteImagePath);
 
   const [forms, setForms] = useState<Record<string, JudgeFormData>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
@@ -182,6 +187,16 @@ export default function JudgePage({ params }: JudgePageProps) {
                 {isSubmitted && (
                   <span className="text-xs text-[#2ecc71] ml-auto">Submitted</span>
                 )}
+              </div>
+
+              {/* Landscape preview */}
+              <div className="mb-3 overflow-hidden" style={{ borderRadius: 2 }}>
+                <LandscapePreview
+                  placements={placements.filter((p) => p.teamId === team.id)}
+                  canvasWidth={canvasWidth}
+                  canvasHeight={canvasHeight}
+                  satelliteImagePath={satelliteImagePath}
+                />
               </div>
 
               {/* Auto-score summary */}
