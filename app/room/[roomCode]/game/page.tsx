@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, use, useState } from 'react';
+import { useEffect, useCallback, use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useGameStore } from '@/store';
-import PixelCard from '@/components/shared/PixelCard';
+import CanvasArea from '@/components/game/CanvasArea';
+import ElementSidebar from '@/components/sidebar/ElementSidebar';
 
 interface GamePageProps {
   params: Promise<{ roomCode: string }>;
@@ -19,8 +20,7 @@ function formatTime(seconds: number): string {
 export default function GamePage({ params }: GamePageProps) {
   const { roomCode } = use(params);
   const router = useRouter();
-  const canvasContainerRef = useRef<HTMLDivElement>(null);
-  const { connect } = useWebSocket();
+  const { connect, emit } = useWebSocket();
 
   const status = useGameStore((s) => s.room.status);
   const currentRound = useGameStore((s) => s.room.currentRound);
@@ -28,15 +28,30 @@ export default function GamePage({ params }: GamePageProps) {
   const timeRemaining = useGameStore((s) => s.room.roundTimeRemaining);
   const paused = useGameStore((s) => s.room.paused);
   const areaLabel = useGameStore((s) => s.room.areaLabel);
+  const canvasWidth = useGameStore((s) => s.room.canvasWidth);
+  const canvasHeight = useGameStore((s) => s.room.canvasHeight);
+  const satelliteImagePath = useGameStore((s) => s.room.satelliteImagePath);
   const teams = useGameStore((s) => s.teams);
   const playerId = useGameStore((s) => s.playerId);
   const error = useGameStore((s) => s.error);
+  const placements = useGameStore((s) => s.placements);
+  const selectedElementType = useGameStore((s) => s.selectedElementType);
+  const selectElement = useGameStore((s) => s.selectElement);
+  const zoneConfig = useGameStore((s) => s.zoneConfig);
+  const myZoneIndex = useGameStore((s) => s.myZoneIndex);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
 
   // Find my team
   const myTeam = teams.find((t) =>
     t.players.some((p) => p.id === playerId)
   );
+
+  // Compute zone data from store
+  const zones = zoneConfig?.zones ?? [];
+  const playerZone = myZoneIndex != null ? zones[myZoneIndex] ?? null : null;
+  const teamColor = myTeam?.team.color ?? '#888888';
 
   useEffect(() => {
     connect();
@@ -47,6 +62,47 @@ export default function GamePage({ params }: GamePageProps) {
       router.push(`/room/${roomCode}/results`);
     }
   }, [status, roomCode, router]);
+
+  // Socket emitter handlers
+  const handlePlaceElement = useCallback((elementType: string, x: number, y: number) => {
+    emit('element:place', { elementType, x, y });
+  }, [emit]);
+
+  const handleMovePlacement = useCallback((placementId: string, x: number, y: number) => {
+    emit('element:move', { placementId, x, y });
+  }, [emit]);
+
+  const handleRemovePlacement = useCallback((placementId: string) => {
+    emit('element:remove', { placementId });
+    setSelectedPlacementId(null);
+  }, [emit]);
+
+  const handleSelectPlacement = useCallback((id: string | null) => {
+    setSelectedPlacementId(id);
+    if (id) selectElement(null);
+  }, [selectElement]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedPlacementId(null);
+    selectElement(null);
+  }, [selectElement]);
+
+  const handleSelectElement = useCallback((type: string) => {
+    selectElement(type);
+    setSelectedPlacementId(null);
+  }, [selectElement]);
+
+  // Delete key removes selected placement
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPlacementId) {
+        e.preventDefault();
+        handleRemovePlacement(selectedPlacementId);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedPlacementId, handleRemovePlacement]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -140,35 +196,30 @@ export default function GamePage({ params }: GamePageProps) {
             boxShadow: 'inset -2px 0 0 #1a3a1a',
           }}
         >
-          <PixelCard title="Elements" className="m-2">
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-2 animate-pulse">
-                  <div className="w-9 h-9 rounded bg-[#2d5a27]/50" />
-                  <div className="flex-1 space-y-1">
-                    <div className="h-3 bg-[#2d5a27]/50 rounded w-3/4" />
-                    <div className="h-2 bg-[#2d5a27]/30 rounded w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </PixelCard>
+          <ElementSidebar
+            selectedElementType={selectedElementType}
+            onSelectElement={handleSelectElement}
+          />
         </div>
 
         {/* Canvas area */}
-        <div
-          ref={canvasContainerRef}
-          className="flex-1 flex items-center justify-center overflow-hidden relative"
-          style={{ background: '#142014' }}
-          id="canvas-container"
-        >
-          <div className="text-center text-[#4a6a3a]">
-            <div className="animate-pulse space-y-3">
-              <div className="mx-auto w-16 h-16 rounded bg-[#2d5a27]/30" />
-              <p className="text-sm">Loading canvas...</p>
-            </div>
-          </div>
-        </div>
+        <CanvasArea
+          canvasWidth={canvasWidth}
+          canvasHeight={canvasHeight}
+          satelliteImagePath={satelliteImagePath}
+          zones={zones}
+          teamColor={teamColor}
+          currentZoneIndex={myZoneIndex}
+          playerZone={playerZone}
+          currentPlayerId={playerId ?? ''}
+          placements={placements}
+          selectedElementType={selectedElementType}
+          selectedPlacementId={selectedPlacementId}
+          onSelectPlacement={handleSelectPlacement}
+          onMovePlacement={handleMovePlacement}
+          onPlaceElement={handlePlaceElement}
+          onClearSelection={handleClearSelection}
+        />
       </div>
     </div>
   );

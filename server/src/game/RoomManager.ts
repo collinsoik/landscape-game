@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection';
 import type { Session, Player, Team, Placement, ZoneConfig } from '../types/models';
 import type { RoomStateData, TeamWithPlayers } from '../types/events';
+import { getTimeRemaining } from './RoundManager';
 
 function generateRoomCode(length: number): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I,O,0,1 to avoid confusion
@@ -71,7 +72,7 @@ export function updateSession(id: string, updates: Partial<Pick<Session, 'status
 export function joinRoom(roomCode: string, playerName: string): { player: Player; session: Session } | { error: string } {
   const session = getSessionByCode(roomCode);
   if (!session) return { error: 'Room not found' };
-  if (session.status !== 'waiting' && playerName !== '__admin__') return { error: 'Game already in progress' };
+  if (session.status !== 'waiting' && session.status !== 'playing' && playerName !== '__admin__') return { error: 'Game already in progress' };
 
   const db = getDb();
   const existingCount = db.prepare('SELECT COUNT(*) as cnt FROM players WHERE session_id = ?').get(session.id) as any;
@@ -146,7 +147,7 @@ export function getRoomState(sessionId: string): RoomStateData | undefined {
   const teams = getTeamWithPlayers(sessionId);
   const placements = getPlacementsForSession(sessionId, session.currentRound > 0 ? session.currentRound : undefined);
 
-  return {
+  const state: RoomStateData = {
     session: {
       id: session.id,
       roomCode: session.roomCode,
@@ -163,6 +164,12 @@ export function getRoomState(sessionId: string): RoomStateData | undefined {
     placements,
     scores: {},
   };
+
+  if (session.status === 'playing') {
+    state.roundTimeRemaining = getTimeRemaining(sessionId);
+  }
+
+  return state;
 }
 
 export function setPlayerConnected(playerId: string, connected: boolean): void {
