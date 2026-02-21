@@ -140,6 +140,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('room:rejoin', (data, callback) => {
+    console.log(`[Socket] Rejoin request: socket=${socket.id} player=${data.playerId} room=${data.roomCode}`);
     const playerInfo = { playerId: data.playerId, sessionId: '' };
     const player = getPlayer(data.playerId);
     if (player) {

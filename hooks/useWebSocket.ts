@@ -80,8 +80,12 @@ export function useWebSocket() {
         socketRef.current = null;
         boundRef.current = false;
       }
+      // destroySocket() removes all listeners before disconnecting, so the
+      // disconnect handler that normally sets connected=false never fires.
+      // Explicitly reset it so the next page's rejoin effect triggers correctly.
+      setConnected(false);
     };
-  }, []);
+  }, [setConnected]);
 
   return { connect, disconnect, emit, socket: socketRef };
 }
