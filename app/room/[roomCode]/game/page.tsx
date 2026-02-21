@@ -6,6 +6,10 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { useGameStore } from '@/store';
 import CanvasArea from '@/components/game/CanvasArea';
 import ElementSidebar from '@/components/sidebar/ElementSidebar';
+import TutorialOverlay, {
+  hasTutorialBeenSeen,
+  markTutorialSeen,
+} from '@/components/game/TutorialOverlay';
 
 interface GamePageProps {
   params: Promise<{ roomCode: string }>;
@@ -44,6 +48,19 @@ export default function GamePage({ params }: GamePageProps) {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Show tutorial on first visit (after mount to avoid SSR mismatch)
+  useEffect(() => {
+    if (!hasTutorialBeenSeen()) {
+      setShowTutorial(true);
+    }
+  }, []);
+
+  const handleCloseTutorial = useCallback(() => {
+    setShowTutorial(false);
+    markTutorialSeen();
+  }, []);
 
   // Find my team
   const myTeam = teams.find((t) =>
@@ -193,6 +210,17 @@ export default function GamePage({ params }: GamePageProps) {
             </span>
           )}
           <span className="text-xs text-[#4a6a3a] font-mono hidden sm:inline">{roomCode}</span>
+          <button
+            onClick={() => setShowTutorial(true)}
+            className="text-[#6a9a4a] hover:text-[#8bba6a] hover:bg-[#2d5a27]/40 w-6 h-6 flex items-center justify-center text-xs font-bold cursor-pointer transition-colors"
+            style={{
+              boxShadow: 'inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.1)',
+            }}
+            title="Open tutorial"
+            aria-label="Open tutorial"
+          >
+            ?
+          </button>
         </div>
       </div>
 
@@ -259,6 +287,9 @@ export default function GamePage({ params }: GamePageProps) {
           onClearSelection={handleClearSelection}
         />
       </div>
+
+      {/* Tutorial overlay */}
+      <TutorialOverlay open={showTutorial} onClose={handleCloseTutorial} />
     </div>
   );
 }
