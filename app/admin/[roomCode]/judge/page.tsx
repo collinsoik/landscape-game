@@ -37,11 +37,12 @@ const defaultForm = (): JudgeFormData => ({
 
 export default function JudgePage({ params }: JudgePageProps) {
   const { roomCode } = use(params);
-  const { connect } = useWebSocket();
+  const { connect, emit } = useWebSocket();
 
   const teams = useGameStore((s) => s.teams);
   const room = useGameStore((s) => s.room);
   const scores = useGameStore((s) => s.scores);
+  const connected = useGameStore((s) => s.connected);
 
   const [forms, setForms] = useState<Record<string, JudgeFormData>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
@@ -52,6 +53,16 @@ export default function JudgePage({ params }: JudgePageProps) {
   useEffect(() => {
     connect();
   }, [connect]);
+
+  useEffect(() => {
+    if (connected) {
+      emit('room:join', { roomCode, playerName: '__admin__' }, (res: { success: boolean; error?: string }) => {
+        if (!res.success) {
+          console.error('[Judge] Failed to join room:', res.error);
+        }
+      });
+    }
+  }, [connected, emit, roomCode]);
 
   // Init forms for each team
   useEffect(() => {
@@ -85,16 +96,16 @@ export default function JudgePage({ params }: JudgePageProps) {
       const judgeToken = sessionStorage.getItem(`judge_${roomCode}`) ?? '';
       const apiUrl = process.env.NEXT_PUBLIC_WS_URL ?? 'http://localhost:3001';
       const res = await fetch(
-        `${apiUrl}/api/sessions/${roomCode}/rounds/${room.currentRound}/judge-scores`,
+        `${apiUrl}/api/rooms/${roomCode}/judge-scores`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${judgeToken}`,
           },
           body: JSON.stringify({
-            teamId,
-            ...form,
+            judgeToken,
+            round: room.currentRound,
+            scores: [{ teamId, ...form }],
           }),
         }
       );

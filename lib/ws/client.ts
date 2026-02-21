@@ -11,7 +11,7 @@ export function getSocket(): GameSocket {
   if (!socket) {
     socket = io(WS_URL, {
       autoConnect: false,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
