@@ -18,6 +18,22 @@ export default function ZoneHighlightLayer({
 }: ZoneHighlightLayerProps) {
   return (
     <Layer listening={false}>
+      {/* Grey out non-buildable zones */}
+      {zones.map((zone) => {
+        const isCurrent = zone.index === currentZoneIndex;
+        if (isCurrent) return null;
+        return (
+          <Rect
+            key={`zone-overlay-${zone.index}`}
+            x={zone.x}
+            y={zone.y}
+            width={zone.width}
+            height={zone.height}
+            fill="rgba(0,0,0,0.35)"
+          />
+        );
+      })}
+      {/* Zone borders */}
       {zones.map((zone) => {
         const isCurrent = zone.index === currentZoneIndex;
         return (
@@ -27,26 +43,26 @@ export default function ZoneHighlightLayer({
             y={zone.y}
             width={zone.width}
             height={zone.height}
-            stroke={teamColor}
-            strokeWidth={isCurrent ? 3 : 1}
-            fill={isCurrent ? `${teamColor}22` : 'transparent'}
+            stroke={isCurrent ? '#ffffff' : 'rgba(255,255,255,0.15)'}
+            strokeWidth={isCurrent ? 2 : 1}
+            fill="transparent"
             dash={isCurrent ? undefined : [6, 4]}
           />
         );
       })}
       {/* Zone labels */}
       {zones.map((zone) => {
+        const isCurrent = zone.index === currentZoneIndex;
         const label = playerNames?.[zone.index] ?? `Zone ${zone.index + 1}`;
         return (
           <Text
             key={`zone-label-${zone.index}`}
             x={zone.x + 4}
             y={zone.y + 4}
-            text={label}
-            fontSize={11}
+            text={isCurrent ? `${label} (You)` : label}
+            fontSize={isCurrent ? 12 : 11}
             fontFamily="sans-serif"
-            fill={teamColor}
-            opacity={0.7}
+            fill={isCurrent ? '#ffffff' : 'rgba(255,255,255,0.5)'}
           />
         );
       })}
