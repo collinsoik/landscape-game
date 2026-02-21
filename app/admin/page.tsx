@@ -56,15 +56,16 @@ export default function AdminCreatePage() {
       }
 
       const data = await res.json();
+      const roomCode = data.session?.roomCode ?? data.roomCode;
       setResult({
-        roomCode: data.session?.roomCode ?? data.roomCode,
+        roomCode,
         adminToken: data.adminToken,
         judgeToken: data.judgeToken,
       });
 
       // Store admin token for later use
-      sessionStorage.setItem(`admin_${data.roomCode}`, data.adminToken);
-      sessionStorage.setItem(`judge_${data.roomCode}`, data.judgeToken);
+      sessionStorage.setItem(`admin_${roomCode}`, data.adminToken);
+      sessionStorage.setItem(`judge_${roomCode}`, data.judgeToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {

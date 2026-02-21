@@ -33,7 +33,11 @@ export default function AdminDashboard({ params }: AdminDashboardProps) {
   // Join as admin viewer (re-use room:join with a reserved name)
   useEffect(() => {
     if (!connected) return;
-    emit('room:join', { roomCode, playerName: '__admin__' }, () => {});
+    emit('room:join', { roomCode, playerName: '__admin__' }, (res: { success: boolean; error?: string }) => {
+      if (!res.success) {
+        console.error('[Admin] Failed to join room:', res.error);
+      }
+    });
   }, [connected, roomCode, emit]);
 
   const startRound = useCallback(() => {
