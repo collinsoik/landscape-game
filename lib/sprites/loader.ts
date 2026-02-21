@@ -1,15 +1,16 @@
-// Sprite loader — generates placeholder sprites using Canvas 2D API and caches them
+// Sprite loader — generates pixel-art sprites using Canvas 2D API and caches them
 
 import { getCategoryColor, getInitials } from './catalog';
+import { getPixelArtDrawFn } from './pixel-art';
 
 const spriteCache = new Map<string, HTMLImageElement>();
 
 /**
- * Generates a placeholder sprite for an element type.
- * Draws a colored rectangle (based on category) with white text initials.
+ * Generates a sprite for an element type.
+ * Uses pixel art if available, otherwise falls back to a colored placeholder.
  * Returns an HTMLImageElement loaded from a data URL.
  */
-function generatePlaceholderSprite(
+function generateSprite(
   type: string,
   category: string,
   width: number,
@@ -23,29 +24,32 @@ function generatePlaceholderSprite(
   // Disable smoothing for crisp pixel art
   ctx.imageSmoothingEnabled = false;
 
-  // Background fill with category color
-  const bgColor = getCategoryColor(category);
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, width, height);
+  // Try pixel art first
+  const drawFn = getPixelArtDrawFn(type);
+  if (drawFn) {
+    drawFn(ctx, width, height);
+  } else {
+    // Fallback: colored rectangle with initials
+    const bgColor = getCategoryColor(category);
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, width, height);
 
-  // Darker border
-  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(1, 1, width - 2, height - 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, width - 2, height - 2);
 
-  // Inner highlight
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(3, 3, width - 6, height - 6);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(3, 3, width - 6, height - 6);
 
-  // Text initials
-  const initials = getInitials(type);
-  const fontSize = Math.min(width, height) * 0.4;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${fontSize}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(initials, width / 2, height / 2);
+    const initials = getInitials(type);
+    const fontSize = Math.min(width, height) * 0.4;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(initials, width / 2, height / 2);
+  }
 
   const img = new Image();
   img.src = canvas.toDataURL();
@@ -53,7 +57,7 @@ function generatePlaceholderSprite(
 }
 
 /**
- * Gets or creates a cached placeholder sprite for the given element.
+ * Gets or creates a cached sprite for the given element.
  * Returns a Promise that resolves once the image is loaded.
  */
 export function getSprite(
@@ -68,7 +72,7 @@ export function getSprite(
     return Promise.resolve(cached);
   }
 
-  const img = generatePlaceholderSprite(type, category, width, height);
+  const img = generateSprite(type, category, width, height);
 
   return new Promise((resolve) => {
     if (img.complete) {
