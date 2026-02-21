@@ -76,6 +76,8 @@ export interface AutoScore {
   breakdown: string; // JSON: detailed breakdown
 }
 
+export type ScoreCategory = 'biodiversity' | 'sustainability' | 'aesthetics' | 'ecosystemHealth';
+
 export interface JudgeScore {
   id: string;
   sessionId: string;
@@ -146,7 +148,7 @@ export interface InteractionRule {
   elementB: string;
   radius: number;
   effect: 'synergy' | 'conflict';
-  scoreCategory: keyof AutoScore;
+  scoreCategory: ScoreCategory;
   value: number;
   description: string;
 }
@@ -157,7 +159,7 @@ export interface EcosystemPattern {
   requiredElements: { type: string; minCount: number }[];
   maxRadius: number;
   bonusPoints: number;
-  category: keyof Pick<AutoScore, 'biodiversity' | 'sustainability' | 'aesthetics' | 'ecosystemHealth'>;
+  category: ScoreCategory;
 }
 
 export interface ScoreBreakdown {

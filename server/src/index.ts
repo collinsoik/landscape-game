@@ -31,13 +31,15 @@ import type { FinalScoreData } from './types/events';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
+const corsOrigins: (string | RegExp)[] = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+corsOrigins.push(/\.vercel\.app$/);
+
 const app = express();
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    /\.vercel\.app$/,
-  ],
+  origin: corsOrigins,
   credentials: true,
 }));
 app.use(express.json());
@@ -57,11 +59,7 @@ app.get('/api/health', (_req, res) => {
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      /\.vercel\.app$/,
-    ],
+    origin: corsOrigins,
     credentials: true,
   },
 });

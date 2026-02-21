@@ -7,7 +7,10 @@ let db: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (db) return db;
 
-  const dbPath = path.join(__dirname, '..', '..', 'data', 'landscape.db');
+  const defaultPath = path.join(__dirname, '..', '..', 'data', 'landscape.db');
+  const dbPath = process.env.DB_PATH
+    ? path.resolve(process.env.DB_PATH)
+    : defaultPath;
   const dataDir = path.dirname(dbPath);
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });

@@ -9,7 +9,7 @@ import ElementSidebar from '@/components/sidebar/ElementSidebar';
 import TutorialOverlay, {
   hasTutorialBeenSeen,
   markTutorialSeen,
-} from '@/components/game/TutorialOverlay';
+} from '@/components/game/tutorial/TutorialOverlay';
 
 interface GamePageProps {
   params: Promise<{ roomCode: string }>;
