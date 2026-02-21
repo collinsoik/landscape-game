@@ -50,16 +50,20 @@ export default function GamePage({ params }: GamePageProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [helpSeen, setHelpSeen] = useState(true); // true initially to avoid flash
 
   // Show tutorial on first visit (after mount to avoid SSR mismatch)
   useEffect(() => {
-    if (!hasTutorialBeenSeen()) {
+    const seen = hasTutorialBeenSeen();
+    setHelpSeen(seen);
+    if (!seen) {
       setShowTutorial(true);
     }
   }, []);
 
   const handleCloseTutorial = useCallback(() => {
     setShowTutorial(false);
+    setHelpSeen(true);
     markTutorialSeen();
   }, []);
 
@@ -216,14 +220,22 @@ export default function GamePage({ params }: GamePageProps) {
           <span className="text-xs text-[#4a6a3a] font-mono hidden sm:inline">{roomCode}</span>
           <button
             onClick={() => setShowTutorial(true)}
-            className="text-[#6a9a4a] hover:text-[#8bba6a] hover:bg-[#2d5a27]/40 w-6 h-6 flex items-center justify-center text-xs font-bold cursor-pointer transition-colors"
+            className={[
+              'flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all',
+              helpSeen
+                ? 'bg-[#2d5a27] text-[#8bba6a] hover:bg-[#3a7a34] hover:text-[#d4e8c2]'
+                : 'bg-[#3a7a34] text-[#d4e8c2] animate-pulse',
+            ].join(' ')}
             style={{
-              boxShadow: 'inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.1)',
+              boxShadow: helpSeen
+                ? 'inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.1)'
+                : '0 0 8px rgba(139, 186, 106, 0.5), inset -1px -1px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.15)',
             }}
             title="Open tutorial"
             aria-label="Open tutorial"
           >
-            ?
+            <span>?</span>
+            <span>Help</span>
           </button>
         </div>
       </div>

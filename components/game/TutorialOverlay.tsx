@@ -215,14 +215,14 @@ export default function TutorialOverlay({ open, onClose }: TutorialOverlayProps)
   );
 }
 
-/** Check if the player has already seen the tutorial. */
+/** Check if the player has already seen the tutorial this session. */
 export function hasTutorialBeenSeen(): boolean {
   if (typeof window === 'undefined') return false;
-  return localStorage.getItem(TUTORIAL_STORAGE_KEY) === 'true';
+  return sessionStorage.getItem(TUTORIAL_STORAGE_KEY) === 'true';
 }
 
-/** Mark the tutorial as seen in localStorage. */
+/** Mark the tutorial as seen for this session. */
 export function markTutorialSeen(): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+  sessionStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
 }
