@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ElementDefinition } from '@/server/src/types/models';
+import type { ElementDefinition } from '@/config/elements';
 import ElementCard from './ElementCard';
 
 interface ElementCategoryProps {
@@ -72,18 +72,15 @@ export default function ElementCategory({
       {/* Element list */}
       {isOpen && !locked && (
         <div className="flex flex-col gap-0.5 px-2 pb-1">
-          {elements.map((el) => {
-            const canAfford = budgetRemaining === undefined || budgetRemaining < 0 || budgetRemaining >= el.cost;
-            return (
-              <ElementCard
-                key={el.type}
-                element={el}
-                isSelected={selectedElementType === el.type}
-                onSelect={onSelectElement}
-                canAfford={canAfford}
-              />
-            );
-          })}
+          {elements.map((el) => (
+            <ElementCard
+              key={el.type}
+              element={el}
+              isSelected={selectedElementType === el.type}
+              onSelect={onSelectElement}
+              placements={[]}
+            />
+          ))}
         </div>
       )}
     </div>

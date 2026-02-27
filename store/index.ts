@@ -1,14 +1,10 @@
 import { create } from 'zustand';
-import { createConnectionSlice, type ConnectionSlice } from './slices/connectionSlice';
-import { createRoomSlice, type RoomSlice } from './slices/roomSlice';
+import { createGameSlice, type GameSlice } from './slices/gameSlice';
 import { createCanvasSlice, type CanvasSlice } from './slices/canvasSlice';
-import { createScoreSlice, type ScoreSlice } from './slices/scoreSlice';
 
-export type GameStore = ConnectionSlice & RoomSlice & CanvasSlice & ScoreSlice;
+export type GameStore = GameSlice & CanvasSlice;
 
 export const useGameStore = create<GameStore>()((...a) => ({
-  ...createConnectionSlice(...a),
-  ...createRoomSlice(...a),
+  ...createGameSlice(...a),
   ...createCanvasSlice(...a),
-  ...createScoreSlice(...a),
 }));

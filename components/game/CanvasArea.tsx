@@ -1,26 +1,20 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import type { Placement, ZoneRect } from '@/server/src/types/models';
+import type { LocalPlacement } from '@/lib/types';
 import KonvaStage from './KonvaStage';
 
 interface CanvasAreaProps {
   canvasWidth: number;
   canvasHeight: number;
-  satelliteImagePath: string | null;
-  zones: ZoneRect[];
-  teamColor: string;
-  currentZoneIndex: number | null;
-  playerZone: ZoneRect | null;
-  currentPlayerId: string;
-  placements: Placement[];
+  placements: LocalPlacement[];
+  currentRound: number;
   selectedElementType: string | null;
   selectedPlacementId: string | null;
   onSelectPlacement: (id: string | null) => void;
   onMovePlacement: (placementId: string, x: number, y: number) => void;
   onPlaceElement: (elementType: string, x: number, y: number) => void;
   onClearSelection: () => void;
-  playerNames?: Record<number, string>;
 }
 
 export default function CanvasArea(props: CanvasAreaProps) {
@@ -30,16 +24,8 @@ export default function CanvasArea(props: CanvasAreaProps) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
-    const measure = () => {
-      setSize({
-        width: el.clientWidth,
-        height: el.clientHeight,
-      });
-    };
-
+    const measure = () => setSize({ width: el.clientWidth, height: el.clientHeight });
     measure();
-
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
@@ -51,11 +37,7 @@ export default function CanvasArea(props: CanvasAreaProps) {
       className="flex-1 flex items-center justify-center bg-neutral-900 overflow-hidden"
     >
       {size.width > 0 && size.height > 0 && (
-        <KonvaStage
-          {...props}
-          width={size.width}
-          height={size.height}
-        />
+        <KonvaStage {...props} width={size.width} height={size.height} />
       )}
     </div>
   );

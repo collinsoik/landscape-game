@@ -1,41 +1,29 @@
-// Re-export shared types for frontend use
-// This avoids deep imports into server/src/types/
+export interface LocalPlacement {
+  id: string;
+  elementType: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  round: number;
+}
 
-export type {
-  Session,
-  Player,
-  Team,
-  ZoneRect,
-  ZoneConfig,
-  Placement,
-  AutoScore,
-  JudgeScore,
-  Round,
-  ElementDefinition,
-  ElementCategory,
-  ElementProperties,
-  InteractionRule,
-  EcosystemPattern,
-  ScoreBreakdown,
-  MissionType,
-  MissionObjective,
-  StarThresholds,
-  MissionEventData,
-  StarDetail,
-  StarCondition,
-  ObjectiveCondition,
-  ScoreCategory,
-} from '@/server/src/types/models';
+export interface RoundResult {
+  round: number;
+  stars: number;
+  placements: LocalPlacement[];
+}
 
-export type {
-  ClientToServerEvents,
-  ServerToClientEvents,
-  JoinResponse,
-  RejoinResponse,
-  RoomStateData,
-  TeamWithPlayers,
-  PlaceElementData,
-  MoveElementData,
-  RoundStartData,
-  FinalScoreData,
-} from '@/server/src/types/events';
+export interface SubmissionPayload {
+  playerName: string;
+  placements: LocalPlacement[];
+  stars: { round: number; stars: number }[];
+}
+
+export interface GalleryEntry {
+  id: number;
+  playerName: string;
+  placements: LocalPlacement[];
+  stars: { round: number; stars: number }[];
+  submittedAt: string;
+}

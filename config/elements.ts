@@ -2,7 +2,27 @@
 // REBALANCED: wider cost spread (1-5), sharper specializations, lower base scores
 // Design: cheap elements are enablers, expensive elements are synergy anchors
 
-import type { ElementDefinition } from '@/server/src/types/models';
+export interface ElementDefinition {
+  type: string;
+  name: string;
+  category: string;
+  description: string;
+  spriteKey: string;
+  width: number;
+  height: number;
+  cost: number;
+  baseScores: { biodiversity: number; sustainability: number; aesthetics: number; ecosystemHealth: number };
+  properties: {
+    isNative: boolean;
+    providesShade: boolean;
+    attractsPollinators: boolean;
+    waterAbsorption: number;
+    carbonSequestration: number;
+    wildlifeValue: number;
+    shadeRequirement: string;
+    waterRequirement: string;
+  };
+}
 
 export const ELEMENT_CATALOG: ElementDefinition[] = [
   // === TREES (3-4 coins — anchor pieces, strong synergy magnets) ===

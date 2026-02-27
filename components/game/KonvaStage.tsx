@@ -2,17 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import { useRef, useCallback, useState } from 'react';
-import type { Placement, ZoneRect } from '@/server/src/types/models';
 import { getElementDef } from '@/config/elements';
-import { isPointInZone } from '@/lib/zones/validator';
 import { GAME_DEFAULTS } from '@/config/game-defaults';
 import BackgroundLayer from './layers/BackgroundLayer';
-import ZoneHighlightLayer from './layers/ZoneHighlightLayer';
 import ElementsLayer from './layers/ElementsLayer';
-import InteractionsLayer from './layers/InteractionsLayer';
 import UILayer from './layers/UILayer';
 
-// Dynamically import react-konva Stage with SSR disabled (Konva needs browser APIs)
 const Stage = dynamic(
   () => import('react-konva').then((m) => m.Stage),
   { ssr: false },
@@ -23,20 +18,14 @@ interface KonvaStageProps {
   height: number;
   canvasWidth: number;
   canvasHeight: number;
-  satelliteImagePath: string | null;
-  zones: ZoneRect[];
-  teamColor: string;
-  currentZoneIndex: number | null;
-  playerZone: ZoneRect | null;
-  currentPlayerId: string;
-  placements: Placement[];
+  placements: import('@/lib/types').LocalPlacement[];
+  currentRound: number;
   selectedElementType: string | null;
   selectedPlacementId: string | null;
   onSelectPlacement: (id: string | null) => void;
   onMovePlacement: (placementId: string, x: number, y: number) => void;
   onPlaceElement: (elementType: string, x: number, y: number) => void;
   onClearSelection: () => void;
-  playerNames?: Record<number, string>;
 }
 
 export default function KonvaStage({
@@ -44,34 +33,21 @@ export default function KonvaStage({
   height,
   canvasWidth,
   canvasHeight,
-  satelliteImagePath,
-  zones,
-  teamColor,
-  currentZoneIndex,
-  playerZone,
-  currentPlayerId,
   placements,
+  currentRound,
   selectedElementType,
   selectedPlacementId,
   onSelectPlacement,
   onMovePlacement,
   onPlaceElement,
   onClearSelection,
-  playerNames,
 }: KonvaStageProps) {
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
-  const [hoveredPlacementId, setHoveredPlacementId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Scale to fit the container while preserving aspect ratio
   const scaleX = width / canvasWidth;
   const scaleY = height / canvasHeight;
   const scale = Math.min(scaleX, scaleY);
-
-  const cursorInZone =
-    cursorPos && playerZone
-      ? isPointInZone(cursorPos.x, cursorPos.y, playerZone)
-      : false;
 
   const screenToCanvas = useCallback(
     (screenX: number, screenY: number): { x: number; y: number } => {
@@ -85,28 +61,23 @@ export default function KonvaStage({
     [scale],
   );
 
+  const isInBounds = (x: number, y: number) =>
+    x >= 0 && x <= canvasWidth && y >= 0 && y <= canvasHeight;
+
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      const pos = screenToCanvas(e.clientX, e.clientY);
-      setCursorPos(pos);
-    },
+    (e: React.MouseEvent) => setCursorPos(screenToCanvas(e.clientX, e.clientY)),
     [screenToCanvas],
   );
 
-  const handleMouseLeave = useCallback(() => {
-    setCursorPos(null);
-  }, []);
+  const handleMouseLeave = useCallback(() => setCursorPos(null), []);
 
   const handleStageClick = useCallback(
     (e: React.MouseEvent) => {
       const pos = screenToCanvas(e.clientX, e.clientY);
-
-      // If we have a selected element type from sidebar, place it
-      if (selectedElementType && playerZone && isPointInZone(pos.x, pos.y, playerZone)) {
+      if (selectedElementType && isInBounds(pos.x, pos.y)) {
         const def = getElementDef(selectedElementType);
         const spriteScale = GAME_DEFAULTS.canvas.spriteScale;
         if (def) {
-          // Center the element on click position
           onPlaceElement(
             selectedElementType,
             pos.x - (def.width * spriteScale) / 2,
@@ -115,21 +86,9 @@ export default function KonvaStage({
         }
         return;
       }
-
-      // Otherwise deselect
       onClearSelection();
     },
-    [selectedElementType, playerZone, onPlaceElement, onClearSelection, screenToCanvas],
-  );
-
-  const handleTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      const touch = e.touches[0];
-      const pos = screenToCanvas(touch.clientX, touch.clientY);
-      setCursorPos(pos);
-    },
-    [screenToCanvas],
+    [selectedElementType, onPlaceElement, onClearSelection, screenToCanvas, canvasWidth, canvasHeight],
   );
 
   const handleTouchEnd = useCallback(
@@ -137,8 +96,7 @@ export default function KonvaStage({
       if (e.changedTouches.length !== 1) return;
       const touch = e.changedTouches[0];
       const pos = screenToCanvas(touch.clientX, touch.clientY);
-
-      if (selectedElementType && playerZone && isPointInZone(pos.x, pos.y, playerZone)) {
+      if (selectedElementType && isInBounds(pos.x, pos.y)) {
         const def = getElementDef(selectedElementType);
         const spriteScale = GAME_DEFAULTS.canvas.spriteScale;
         if (def) {
@@ -150,15 +108,13 @@ export default function KonvaStage({
         }
       }
     },
-    [selectedElementType, playerZone, onPlaceElement, screenToCanvas],
+    [selectedElementType, onPlaceElement, screenToCanvas, canvasWidth, canvasHeight],
   );
 
-  // Handle HTML5 drag-and-drop from sidebar
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-      const pos = screenToCanvas(e.clientX, e.clientY);
-      setCursorPos(pos);
+      setCursorPos(screenToCanvas(e.clientX, e.clientY));
     },
     [screenToCanvas],
   );
@@ -167,11 +123,9 @@ export default function KonvaStage({
     (e: React.DragEvent) => {
       e.preventDefault();
       const elementType = e.dataTransfer.getData('application/element-type');
-      if (!elementType || !playerZone) return;
-
+      if (!elementType) return;
       const pos = screenToCanvas(e.clientX, e.clientY);
-      if (!isPointInZone(pos.x, pos.y, playerZone)) return;
-
+      if (!isInBounds(pos.x, pos.y)) return;
       const def = getElementDef(elementType);
       const spriteScale = GAME_DEFAULTS.canvas.spriteScale;
       if (def) {
@@ -182,8 +136,10 @@ export default function KonvaStage({
         );
       }
     },
-    [playerZone, onPlaceElement, screenToCanvas],
+    [onPlaceElement, screenToCanvas, canvasWidth, canvasHeight],
   );
+
+  const cursorInBounds = cursorPos ? isInBounds(cursorPos.x, cursorPos.y) : false;
 
   return (
     <div
@@ -197,7 +153,6 @@ export default function KonvaStage({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={handleStageClick}
-      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -208,35 +163,20 @@ export default function KonvaStage({
         scaleX={scale}
         scaleY={scale}
       >
-        <BackgroundLayer
-          width={canvasWidth}
-          height={canvasHeight}
-          satelliteImagePath={satelliteImagePath}
-        />
-        <ZoneHighlightLayer
-          zones={zones}
-          teamColor={teamColor}
-          currentZoneIndex={currentZoneIndex}
-          playerNames={playerNames}
-        />
+        <BackgroundLayer width={canvasWidth} height={canvasHeight} satelliteImagePath={null} />
         <ElementsLayer
           placements={placements}
-          playerZone={playerZone}
-          currentPlayerId={currentPlayerId}
+          currentRound={currentRound}
           selectedPlacementId={selectedPlacementId}
           onSelect={onSelectPlacement}
           onMove={onMovePlacement}
-          onHover={setHoveredPlacementId}
-        />
-        <InteractionsLayer
-          placements={placements}
-          selectedPlacementId={selectedPlacementId}
-          hoveredPlacementId={hoveredPlacementId}
+          canvasWidth={canvasWidth}
+          canvasHeight={canvasHeight}
         />
         <UILayer
           selectedElementType={selectedElementType}
           cursorPos={cursorPos}
-          cursorInZone={cursorInZone}
+          cursorInBounds={cursorInBounds}
         />
       </Stage>
     </div>

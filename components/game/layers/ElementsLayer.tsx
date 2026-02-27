@@ -2,34 +2,32 @@
 
 import { Layer, Image as KonvaImage } from 'react-konva';
 import { useEffect, useState, useCallback, memo } from 'react';
-import type { Placement, ZoneRect } from '@/server/src/types/models';
+import type { LocalPlacement } from '@/lib/types';
 import { getElementDef } from '@/config/elements';
 import { getSprite, getSpriteSync } from '@/lib/sprites/loader';
-import { clampToZone } from '@/lib/zones/validator';
 import { GAME_DEFAULTS } from '@/config/game-defaults';
 
 interface ElementsLayerProps {
-  placements: Placement[];
-  playerZone: ZoneRect | null;
-  currentPlayerId: string;
+  placements: LocalPlacement[];
+  currentRound: number;
   selectedPlacementId: string | null;
   onSelect: (placementId: string | null) => void;
   onMove: (placementId: string, x: number, y: number) => void;
-  onHover?: (placementId: string | null) => void;
+  canvasWidth: number;
+  canvasHeight: number;
 }
 
 function ElementsLayer({
   placements,
-  playerZone,
-  currentPlayerId,
+  currentRound,
   selectedPlacementId,
   onSelect,
   onMove,
-  onHover,
+  canvasWidth,
+  canvasHeight,
 }: ElementsLayerProps) {
   const [loadGen, setLoadGen] = useState(0);
 
-  // Kick off loading for all placements; bump loadGen when any new sprite loads
   useEffect(() => {
     let cancelled = false;
     placements.forEach((p) => {
@@ -45,20 +43,14 @@ function ElementsLayer({
   }, [placements]);
 
   const handleDragEnd = useCallback(
-    (placementId: string, playerId: string, elWidth: number, elHeight: number) =>
+    (placementId: string, elWidth: number, elHeight: number) =>
       (e: { target: { x: () => number; y: () => number; position: (p: { x: number; y: number }) => void } }) => {
-        if (playerId !== currentPlayerId || !playerZone) return;
-        const clamped = clampToZone(
-          e.target.x(),
-          e.target.y(),
-          elWidth,
-          elHeight,
-          playerZone,
-        );
-        e.target.position(clamped);
-        onMove(placementId, clamped.x, clamped.y);
+        const x = Math.max(0, Math.min(e.target.x(), canvasWidth - elWidth));
+        const y = Math.max(0, Math.min(e.target.y(), canvasHeight - elHeight));
+        e.target.position({ x, y });
+        onMove(placementId, x, y);
       },
-    [currentPlayerId, playerZone, onMove],
+    [canvasWidth, canvasHeight, onMove],
   );
 
   const scale = GAME_DEFAULTS.canvas.spriteScale;
@@ -71,30 +63,8 @@ function ElementsLayer({
         const sprite = getSpriteSync(def.type, def.width, def.height);
         if (!sprite) return null;
 
-        const isOwn = p.playerId === currentPlayerId;
+        const isCurrentRound = p.round === currentRound;
         const isSelected = p.id === selectedPlacementId;
-        const isPrePlaced = p.isPrePlaced;
-        const isInvasive = def.category === 'invasive';
-
-        // Pre-placed elements are not draggable
-        const draggable = isOwn && !isPrePlaced;
-
-        // Visual treatment for pre-placed elements
-        let strokeColor = '#ffffff';
-        let strokeWidth = isSelected ? 2 : 0;
-        let shadowColor = '#ffffff';
-
-        if (isPrePlaced && isInvasive) {
-          // Red pulsing border for invasive pre-placed elements
-          strokeColor = '#e74c3c';
-          strokeWidth = 2;
-          shadowColor = '#e74c3c';
-        } else if (isPrePlaced) {
-          // Subtle grey tint for neutral pre-placed
-          strokeColor = '#888888';
-          strokeWidth = 1;
-          shadowColor = '#888888';
-        }
 
         return (
           <KonvaImage
@@ -105,20 +75,18 @@ function ElementsLayer({
             width={def.width * scale}
             height={def.height * scale}
             image={sprite}
-            draggable={draggable}
+            draggable={isCurrentRound}
             onClick={() => onSelect(isSelected ? null : p.id)}
             onTap={() => onSelect(isSelected ? null : p.id)}
-            onMouseEnter={() => onHover?.(p.id)}
-            onMouseLeave={() => onHover?.(null)}
-            onDragEnd={handleDragEnd(p.id, p.playerId, def.width * scale, def.height * scale)}
-            strokeEnabled={isSelected || (isPrePlaced && isInvasive)}
-            stroke={strokeColor}
-            strokeWidth={strokeWidth}
-            shadowEnabled={isSelected || (isPrePlaced && isInvasive)}
-            shadowColor={shadowColor}
-            shadowBlur={isPrePlaced && isInvasive ? 12 : 8}
-            shadowOpacity={isPrePlaced && isInvasive ? 0.8 : 0.6}
-            opacity={isPrePlaced && !isInvasive ? 0.7 : 1}
+            onDragEnd={handleDragEnd(p.id, def.width * scale, def.height * scale)}
+            strokeEnabled={isSelected}
+            stroke="#ffffff"
+            strokeWidth={isSelected ? 2 : 0}
+            shadowEnabled={isSelected}
+            shadowColor="#ffffff"
+            shadowBlur={8}
+            shadowOpacity={0.6}
+            opacity={isCurrentRound ? 1 : 0.6}
           />
         );
       })}

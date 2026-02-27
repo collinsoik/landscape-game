@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useRef, useState, useEffect } from 'react';
 import { Image as KonvaImage, Layer } from 'react-konva';
-import type { Placement } from '@/server/src/types/models';
+import type { LocalPlacement } from '@/lib/types';
 import { getElementDef } from '@/config/elements';
 import { getSprite, getSpriteSync } from '@/lib/sprites/loader';
 import { GAME_DEFAULTS } from '@/config/game-defaults';
@@ -15,36 +15,30 @@ const Stage = dynamic(
 );
 
 interface LandscapePreviewProps {
-  placements: Placement[];
+  placements: LocalPlacement[];
   canvasWidth: number;
   canvasHeight: number;
-  satelliteImagePath: string | null;
 }
 
 export default function LandscapePreview({
   placements,
   canvasWidth,
   canvasHeight,
-  satelliteImagePath,
 }: LandscapePreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [loadGen, setLoadGen] = useState(0);
 
-  // Observe container width
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
     const measure = () => setContainerWidth(el.clientWidth);
     measure();
-
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // Load sprites for placements
   useEffect(() => {
     let cancelled = false;
     placements.forEach((p) => {
@@ -65,31 +59,16 @@ export default function LandscapePreview({
   const spriteScale = GAME_DEFAULTS.canvas.spriteScale;
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full bg-[#0d1f0d]"
-      style={{ imageRendering: 'pixelated' }}
-    >
+    <div ref={containerRef} className="w-full bg-[#0d1f0d]" style={{ imageRendering: 'pixelated' }}>
       {containerWidth > 0 && (
-        <Stage
-          width={stageWidth}
-          height={stageHeight}
-          scaleX={scale}
-          scaleY={scale}
-          listening={false}
-        >
-          <BackgroundLayer
-            width={canvasWidth}
-            height={canvasHeight}
-            satelliteImagePath={satelliteImagePath}
-          />
+        <Stage width={stageWidth} height={stageHeight} scaleX={scale} scaleY={scale} listening={false}>
+          <BackgroundLayer width={canvasWidth} height={canvasHeight} satelliteImagePath={null} />
           <Layer listening={false}>
             {placements.map((p) => {
               const def = getElementDef(p.elementType);
               if (!def) return null;
               const sprite = getSpriteSync(def.type, def.width, def.height);
               if (!sprite) return null;
-
               return (
                 <KonvaImage
                   key={p.id}
