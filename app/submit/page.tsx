@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameStore } from '@/store';
 import { GAME_DEFAULTS } from '@/config/game-defaults';
@@ -15,10 +15,33 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 export default function SubmitPage() {
   const router = useRouter();
   const { playerName, placements, roundResults, setSubmittedRoomCode, setPhase } = useGameStore();
+
+  // Wait for store to hydrate from sessionStorage before rendering
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    const unsub = useGameStore.persist.onFinishHydration(() => setHydrated(true));
+    if (useGameStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
   const [roomCode, setRoomCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  // Show nothing until store is hydrated
+  if (!hydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-[#6a9a4a]">Loading...</p>
+      </div>
+    );
+  }
+
+  // Redirect if no game data
+  if (!playerName || placements.length === 0) {
+    router.replace('/');
+    return null;
+  }
 
   const totalStars = roundResults.reduce((sum, r) => sum + r.stars, 0);
 

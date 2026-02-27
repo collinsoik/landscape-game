@@ -24,8 +24,17 @@ export default function GamePage() {
 
   const [selectedPlacementId, setSelectedPlacementId] = useState<string | null>(null);
 
-  // Redirect if no player name
-  if (!playerName && typeof window !== 'undefined') {
+  // Wait for store to hydrate from sessionStorage
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    const unsub = useGameStore.persist.onFinishHydration(() => setHydrated(true));
+    if (useGameStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+
+  // Redirect if no player name (only after hydration)
+  if (!hydrated) return null;
+  if (!playerName) {
     router.replace('/');
     return null;
   }
