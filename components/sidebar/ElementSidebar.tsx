@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ELEMENT_CATALOG, getElementDef } from '@/config/elements';
+import { ELEMENT_CATALOG } from '@/config/elements';
 import { ROUNDS } from '@/config/rounds';
 import type { LocalPlacement } from '@/lib/types';
 import ElementCard from './ElementCard';
@@ -69,23 +69,6 @@ export default function ElementSidebar({
           ))}
         </div>
       </div>
-
-      {/* Selected element info */}
-      {selectedElementType && (
-        <SelectedInfo type={selectedElementType} />
-      )}
-    </div>
-  );
-}
-
-function SelectedInfo({ type }: { type: string }) {
-  const el = ELEMENT_CATALOG.find((e) => e.type === type);
-  if (!el) return null;
-
-  return (
-    <div className="px-3 py-3 border-t border-neutral-700 bg-neutral-800/50 space-y-2">
-      <span className="text-sm font-bold text-white">{el.name}</span>
-      <p className="text-xs text-neutral-400 leading-snug">{el.description}</p>
     </div>
   );
 }
