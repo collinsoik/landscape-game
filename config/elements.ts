@@ -1,6 +1,4 @@
 // Element catalog — all landscape elements available in the game
-// REBALANCED: wider cost spread (1-5), sharper specializations, lower base scores
-// Design: cheap elements are enablers, expensive elements are synergy anchors
 
 export interface ElementDefinition {
   type: string;
@@ -8,25 +6,12 @@ export interface ElementDefinition {
   category: string;
   description: string;
   funFacts?: string[];
-  spriteKey: string;
   width: number;
   height: number;
-  cost: number;
-  baseScores: { biodiversity: number; sustainability: number; aesthetics: number; ecosystemHealth: number };
-  properties: {
-    isNative: boolean;
-    providesShade: boolean;
-    attractsPollinators: boolean;
-    waterAbsorption: number;
-    carbonSequestration: number;
-    wildlifeValue: number;
-    shadeRequirement: string;
-    waterRequirement: string;
-  };
 }
 
 export const ELEMENT_CATALOG: ElementDefinition[] = [
-  // === TREES (3-4 coins — anchor pieces, strong synergy magnets) ===
+  // === TREES ===
   {
     type: 'oak_tree',
     name: 'Oak Tree',
@@ -37,21 +22,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Supports 500+ species of caterpillars',
       'Can live over 200 years',
     ],
-    spriteKey: 'oak_tree',
     width: 64,
     height: 64,
-    cost: 4,
-    baseScores: { biodiversity: 6, sustainability: 5, aesthetics: 5, ecosystemHealth: 7 },
-    properties: {
-      isNative: true,
-      providesShade: true,
-      attractsPollinators: false,
-      waterAbsorption: 7,
-      carbonSequestration: 9,
-      wildlifeValue: 9,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'medium',
-    },
   },
   {
     type: 'maple_tree',
@@ -63,21 +35,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Seeds spin like tiny helicopters when they fall',
       'Fall leaves turn red, orange, and yellow all on one tree',
     ],
-    spriteKey: 'maple_tree',
     width: 64,
     height: 64,
-    cost: 4,
-    baseScores: { biodiversity: 4, sustainability: 4, aesthetics: 8, ecosystemHealth: 5 },
-    properties: {
-      isNative: true,
-      providesShade: true,
-      attractsPollinators: false,
-      waterAbsorption: 6,
-      carbonSequestration: 8,
-      wildlifeValue: 7,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'medium',
-    },
   },
   {
     type: 'pine_tree',
@@ -89,21 +48,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Pine needles make natural mulch that enriches soil',
       'Bald eagles prefer tall pines for nesting',
     ],
-    spriteKey: 'pine_tree',
     width: 48,
     height: 64,
-    cost: 3,
-    baseScores: { biodiversity: 3, sustainability: 6, aesthetics: 4, ecosystemHealth: 5 },
-    properties: {
-      isNative: true,
-      providesShade: true,
-      attractsPollinators: false,
-      waterAbsorption: 4,
-      carbonSequestration: 7,
-      wildlifeValue: 6,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'low',
-    },
   },
   {
     type: 'fruit_tree',
@@ -115,24 +61,11 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Fruit trees need pollinators — no bees, no fruit!',
       'Fallen fruit feeds foxes, deer, and box turtles',
     ],
-    spriteKey: 'fruit_tree',
     width: 48,
     height: 56,
-    cost: 3,
-    baseScores: { biodiversity: 5, sustainability: 5, aesthetics: 5, ecosystemHealth: 4 },
-    properties: {
-      isNative: false,
-      providesShade: true,
-      attractsPollinators: true,
-      waterAbsorption: 5,
-      carbonSequestration: 5,
-      wildlifeValue: 8,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'medium',
-    },
   },
 
-  // === SHRUBS (2 coins — versatile mid-range workhorses) ===
+  // === SHRUBS ===
   {
     type: 'native_shrub',
     name: 'Native Shrub',
@@ -143,21 +76,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Dense branches hide nests from predators',
       'Native shrubs support 10x more caterpillars than non-native ones',
     ],
-    spriteKey: 'native_shrub',
     width: 40,
     height: 36,
-    cost: 2,
-    baseScores: { biodiversity: 4, sustainability: 3, aesthetics: 2, ecosystemHealth: 4 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: true,
-      waterAbsorption: 4,
-      carbonSequestration: 3,
-      wildlifeValue: 7,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
   {
     type: 'berry_bush',
@@ -169,21 +89,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Birds can strip a berry bush clean in a single day',
       'Berry bushes turn brilliant red in fall',
     ],
-    spriteKey: 'berry_bush',
     width: 36,
     height: 32,
-    cost: 2,
-    baseScores: { biodiversity: 5, sustainability: 3, aesthetics: 3, ecosystemHealth: 3 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: true,
-      waterAbsorption: 3,
-      carbonSequestration: 2,
-      wildlifeValue: 8,
-      shadeRequirement: 'partial_shade',
-      waterRequirement: 'medium',
-    },
   },
   {
     type: 'hedge_row',
@@ -195,24 +102,11 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'A single hedgerow can shelter 60+ bird species',
       'Hedges reduce wind speed by up to 50%',
     ],
-    spriteKey: 'hedge_row',
     width: 64,
     height: 28,
-    cost: 2,
-    baseScores: { biodiversity: 3, sustainability: 2, aesthetics: 3, ecosystemHealth: 5 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 3,
-      carbonSequestration: 3,
-      wildlifeValue: 6,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
 
-  // === FLOWERS (1-2 coins — wildflowers are premium, shade fern is cheap enabler) ===
+  // === FLOWERS ===
   {
     type: 'wildflower_patch',
     name: 'Wildflower Patch',
@@ -223,21 +117,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Coneflower seeds are a favorite winter food for goldfinches',
       'Wildflower meadows support 3x more pollinators than lawns',
     ],
-    spriteKey: 'wildflower_patch',
     width: 40,
     height: 32,
-    cost: 2,
-    baseScores: { biodiversity: 5, sustainability: 3, aesthetics: 6, ecosystemHealth: 4 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: true,
-      waterAbsorption: 3,
-      carbonSequestration: 2,
-      wildlifeValue: 7,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'low',
-    },
   },
   {
     type: 'sunflower_cluster',
@@ -249,21 +130,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'A single head can contain up to 2,000 seeds',
       'Sunflower roots can pull toxins out of contaminated soil',
     ],
-    spriteKey: 'sunflower_cluster',
     width: 36,
     height: 44,
-    cost: 2,
-    baseScores: { biodiversity: 3, sustainability: 2, aesthetics: 6, ecosystemHealth: 3 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: true,
-      waterAbsorption: 2,
-      carbonSequestration: 1,
-      wildlifeValue: 6,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'medium',
-    },
   },
   {
     type: 'shade_fern',
@@ -275,24 +143,11 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Ferns are ancient — they existed before dinosaurs',
       'Birds line their nests with soft fern fronds',
     ],
-    spriteKey: 'shade_fern',
     width: 32,
     height: 28,
-    cost: 1,
-    baseScores: { biodiversity: 2, sustainability: 3, aesthetics: 4, ecosystemHealth: 3 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 5,
-      carbonSequestration: 1,
-      wildlifeValue: 3,
-      shadeRequirement: 'full_shade',
-      waterRequirement: 'high',
-    },
   },
 
-  // === GROUND COVER (1 coin — cheap fillers, great synergy enablers) ===
+  // === GROUND COVER ===
   {
     type: 'native_grass',
     name: 'Native Grass',
@@ -303,21 +158,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Switchgrass was the dominant plant of the American prairie',
       'Grasslands store more carbon underground than forests do',
     ],
-    spriteKey: 'native_grass',
     width: 48,
     height: 24,
-    cost: 1,
-    baseScores: { biodiversity: 2, sustainability: 5, aesthetics: 2, ecosystemHealth: 3 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 6,
-      carbonSequestration: 3,
-      wildlifeValue: 4,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'low',
-    },
   },
   {
     type: 'moss_patch',
@@ -329,21 +171,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Moss has no roots — it absorbs water through its leaves',
       'Some mosses can survive being completely dried out for years',
     ],
-    spriteKey: 'moss_patch',
     width: 40,
     height: 20,
-    cost: 1,
-    baseScores: { biodiversity: 2, sustainability: 4, aesthetics: 3, ecosystemHealth: 3 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 8,
-      carbonSequestration: 1,
-      wildlifeValue: 2,
-      shadeRequirement: 'full_shade',
-      waterRequirement: 'high',
-    },
   },
   {
     type: 'clover_ground',
@@ -355,24 +184,11 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'A four-leaf clover is a 1 in 5,000 mutation',
       'Honeybees love clover — it is their top nectar source',
     ],
-    spriteKey: 'clover_ground',
     width: 44,
     height: 22,
-    cost: 1,
-    baseScores: { biodiversity: 3, sustainability: 5, aesthetics: 2, ecosystemHealth: 4 },
-    properties: {
-      isNative: true,
-      providesShade: false,
-      attractsPollinators: true,
-      waterAbsorption: 5,
-      carbonSequestration: 2,
-      wildlifeValue: 5,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
 
-  // === WATER FEATURES (1-5 coins — wide range, pond is premium cornerstone) ===
+  // === WATER FEATURES ===
   {
     type: 'rain_garden',
     name: 'Rain Garden',
@@ -383,21 +199,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'They filter pollutants like oil and fertilizer from runoff',
       'A rain garden recharges groundwater naturally',
     ],
-    spriteKey: 'rain_garden',
     width: 56,
     height: 48,
-    cost: 4,
-    baseScores: { biodiversity: 4, sustainability: 8, aesthetics: 5, ecosystemHealth: 6 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: true,
-      waterAbsorption: 10,
-      carbonSequestration: 3,
-      wildlifeValue: 6,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'high',
-    },
   },
   {
     type: 'small_pond',
@@ -409,21 +212,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Ponds are the most biodiverse habitat per square foot',
       'Dragonfly larvae live in ponds for up to 5 years before flying',
     ],
-    spriteKey: 'small_pond',
     width: 56,
     height: 44,
-    cost: 5,
-    baseScores: { biodiversity: 7, sustainability: 4, aesthetics: 6, ecosystemHealth: 7 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 10,
-      carbonSequestration: 1,
-      wildlifeValue: 10,
-      shadeRequirement: 'any',
-      waterRequirement: 'high',
-    },
   },
   {
     type: 'birdbath',
@@ -435,24 +225,11 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Moving water attracts more bird species than still water',
       'Birdbaths can attract species that never visit feeders',
     ],
-    spriteKey: 'birdbath',
     width: 28,
     height: 32,
-    cost: 1,
-    baseScores: { biodiversity: 3, sustainability: 1, aesthetics: 4, ecosystemHealth: 2 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 1,
-      carbonSequestration: 0,
-      wildlifeValue: 7,
-      shadeRequirement: 'any',
-      waterRequirement: 'high',
-    },
   },
 
-  // === STRUCTURES (1-3 coins — utility pieces, shine through synergies) ===
+  // === STRUCTURES ===
   {
     type: 'birdhouse',
     name: 'Birdhouse',
@@ -463,21 +240,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'The entrance hole size determines which birds move in',
       'A birdhouse should face away from prevailing winds',
     ],
-    spriteKey: 'birdhouse',
     width: 24,
     height: 36,
-    cost: 1,
-    baseScores: { biodiversity: 3, sustainability: 1, aesthetics: 3, ecosystemHealth: 2 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 0,
-      carbonSequestration: 0,
-      wildlifeValue: 8,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
   {
     type: 'insect_hotel',
@@ -489,21 +253,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Ladybugs eat up to 5,000 aphids in a lifetime',
       'Mason bees are 100x more efficient pollinators than honeybees',
     ],
-    spriteKey: 'insect_hotel',
     width: 28,
     height: 32,
-    cost: 3,
-    baseScores: { biodiversity: 6, sustainability: 2, aesthetics: 3, ecosystemHealth: 5 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: true,
-      waterAbsorption: 0,
-      carbonSequestration: 0,
-      wildlifeValue: 9,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
   {
     type: 'compost_bin',
@@ -515,23 +266,9 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Worms in a compost bin can eat half their weight daily',
       'Composting reduces landfill methane emissions',
     ],
-    spriteKey: 'compost_bin',
     width: 28,
     height: 28,
-    cost: 2,
-    baseScores: { biodiversity: 1, sustainability: 7, aesthetics: 1, ecosystemHealth: 5 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 2,
-      carbonSequestration: 4,
-      wildlifeValue: 4,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
-
   {
     type: 'bench',
     name: 'Park Bench',
@@ -542,24 +279,11 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Birdwatchers discover more species by sitting still than walking',
       'Benches near water or feeders see the most bird activity',
     ],
-    spriteKey: 'bench',
     width: 40,
     height: 28,
-    cost: 2,
-    baseScores: { biodiversity: 1, sustainability: 2, aesthetics: 7, ecosystemHealth: 1 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 0,
-      carbonSequestration: 0,
-      wildlifeValue: 2,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
 
-  // === WILDLIFE HABITAT (2 coins — ecosystem builders) ===
+  // === WILDLIFE HABITAT ===
   {
     type: 'log_pile',
     name: 'Log Pile',
@@ -570,21 +294,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Decomposing wood returns nutrients to the soil for decades',
       'Fireflies lay their eggs in moist, decaying wood',
     ],
-    spriteKey: 'log_pile',
     width: 44,
     height: 28,
-    cost: 2,
-    baseScores: { biodiversity: 4, sustainability: 3, aesthetics: 2, ecosystemHealth: 5 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 3,
-      carbonSequestration: 2,
-      wildlifeValue: 8,
-      shadeRequirement: 'partial_shade',
-      waterRequirement: 'medium',
-    },
   },
   {
     type: 'rock_garden',
@@ -596,24 +307,11 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Gaps between rocks create micro-habitats for ground beetles',
       'Rock gardens need zero watering — great for dry areas',
     ],
-    spriteKey: 'rock_garden',
     width: 48,
     height: 32,
-    cost: 2,
-    baseScores: { biodiversity: 3, sustainability: 4, aesthetics: 5, ecosystemHealth: 3 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 1,
-      carbonSequestration: 0,
-      wildlifeValue: 5,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'low',
-    },
   },
 
-  // === INVASIVE (1 coin — learning traps, strong negative effects) ===
+  // === INVASIVE ===
   {
     type: 'invasive_vine',
     name: 'Invasive Vine',
@@ -624,21 +322,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Invasive vines block sunlight and kill trees by smothering them',
       'English ivy damages buildings and trees with clinging roots',
     ],
-    spriteKey: 'invasive_vine',
     width: 36,
     height: 36,
-    cost: 1,
-    baseScores: { biodiversity: -6, sustainability: -4, aesthetics: 2, ecosystemHealth: -7 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 4,
-      carbonSequestration: 2,
-      wildlifeValue: -3,
-      shadeRequirement: 'any',
-      waterRequirement: 'low',
-    },
   },
   {
     type: 'invasive_grass',
@@ -650,21 +335,8 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
       'Invasive grasses fuel hotter, more frequent wildfires',
       'Non-native grasses provide almost no food for native insects',
     ],
-    spriteKey: 'invasive_grass',
     width: 48,
     height: 24,
-    cost: 1,
-    baseScores: { biodiversity: -5, sustainability: -3, aesthetics: 1, ecosystemHealth: -5 },
-    properties: {
-      isNative: false,
-      providesShade: false,
-      attractsPollinators: false,
-      waterAbsorption: 3,
-      carbonSequestration: 1,
-      wildlifeValue: -2,
-      shadeRequirement: 'full_sun',
-      waterRequirement: 'low',
-    },
   },
 ];
 
