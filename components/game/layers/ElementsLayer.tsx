@@ -10,6 +10,7 @@ import { GAME_DEFAULTS } from '@/config/game-defaults';
 interface ElementsLayerProps {
   placements: LocalPlacement[];
   currentRound: number;
+  allowMovePreviousRound: boolean;
   selectedPlacementId: string | null;
   onSelect: (placementId: string | null) => void;
   onMove: (placementId: string, x: number, y: number) => void;
@@ -20,6 +21,7 @@ interface ElementsLayerProps {
 function ElementsLayer({
   placements,
   currentRound,
+  allowMovePreviousRound,
   selectedPlacementId,
   onSelect,
   onMove,
@@ -64,6 +66,7 @@ function ElementsLayer({
         if (!sprite) return null;
 
         const isCurrentRound = p.round === currentRound;
+        const canMove = isCurrentRound || allowMovePreviousRound;
         const isSelected = p.id === selectedPlacementId;
 
         return (
@@ -75,7 +78,7 @@ function ElementsLayer({
             width={def.width * scale}
             height={def.height * scale}
             image={sprite}
-            draggable={isCurrentRound}
+            draggable={canMove}
             onClick={() => onSelect(isSelected ? null : p.id)}
             onTap={() => onSelect(isSelected ? null : p.id)}
             onDragEnd={handleDragEnd(p.id, def.width * scale, def.height * scale)}
@@ -86,7 +89,7 @@ function ElementsLayer({
             shadowColor="#ffffff"
             shadowBlur={8}
             shadowOpacity={0.6}
-            opacity={isCurrentRound ? 1 : 0.6}
+            opacity={canMove ? 1 : 0.6}
           />
         );
       })}

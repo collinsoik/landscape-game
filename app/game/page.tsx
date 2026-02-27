@@ -19,6 +19,7 @@ export default function GamePage() {
   const {
     phase, currentRound, playerName, roundResults,
     completeRound, advanceRound, setPhase,
+    allowMovePreviousRound, toggleMovePreviousRound,
     placements, selectedElementType, addPlacement, updatePlacementPosition, removePlacement, selectElement,
   } = useGameStore();
 
@@ -36,7 +37,7 @@ export default function GamePage() {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (!selectedPlacementId) return;
         const placement = placements.find((p) => p.id === selectedPlacementId);
-        if (placement && placement.round === currentRound) {
+        if (placement && (placement.round === currentRound || allowMovePreviousRound)) {
           e.preventDefault();
           removePlacement(selectedPlacementId);
           setSelectedPlacementId(null);
@@ -45,7 +46,7 @@ export default function GamePage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPlacementId, placements, currentRound, removePlacement]);
+  }, [selectedPlacementId, placements, currentRound, allowMovePreviousRound, removePlacement]);
 
   const roundConfig = ROUNDS[currentRound - 1];
   const roundPlacements = useMemo(
@@ -100,6 +101,8 @@ export default function GamePage() {
         currentRound={currentRound}
         placedCount={roundPlacements.length}
         cap={roundConfig?.cap ?? 0}
+        allowMovePreviousRound={allowMovePreviousRound}
+        onToggleMovePrevious={toggleMovePreviousRound}
         onNextRound={handleNextRound}
       />
       <GoalBanner currentRound={currentRound} placements={placements} />
@@ -110,6 +113,7 @@ export default function GamePage() {
           canvasHeight={GAME_DEFAULTS.canvas.height}
           placements={placements}
           currentRound={currentRound}
+          allowMovePreviousRound={allowMovePreviousRound}
           selectedElementType={selectedElementType}
           selectedPlacementId={selectedPlacementId}
           onSelectPlacement={setSelectedPlacementId}

@@ -20,6 +20,7 @@ interface KonvaStageProps {
   canvasHeight: number;
   placements: import('@/lib/types').LocalPlacement[];
   currentRound: number;
+  allowMovePreviousRound: boolean;
   selectedElementType: string | null;
   selectedPlacementId: string | null;
   onSelectPlacement: (id: string | null) => void;
@@ -35,6 +36,7 @@ export default function KonvaStage({
   canvasHeight,
   placements,
   currentRound,
+  allowMovePreviousRound,
   selectedElementType,
   selectedPlacementId,
   onSelectPlacement,
@@ -167,6 +169,7 @@ export default function KonvaStage({
         <ElementsLayer
           placements={placements}
           currentRound={currentRound}
+          allowMovePreviousRound={allowMovePreviousRound}
           selectedPlacementId={selectedPlacementId}
           onSelect={onSelectPlacement}
           onMove={onMovePlacement}
