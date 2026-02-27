@@ -45,9 +45,32 @@ export const ROUNDS: RoundConfig[] = [
   },
   {
     round: 2,
+    category: 'Decorations',
+    cap: 4,
+    elements: ['birdhouse', 'birdbath', 'insect_hotel', 'log_pile'],
+    starCriteria: [
+      {
+        stars: 1,
+        description: 'Place at least 1 decoration',
+        check: (p) => p.length >= 1,
+      },
+      {
+        stars: 2,
+        description: 'Place at least 3 decorations',
+        check: (p) => p.length >= 3,
+      },
+      {
+        stars: 3,
+        description: 'Place 4 decorations including a birdhouse',
+        check: (p) => p.length >= 4 && p.some(e => e.elementType === 'birdhouse'),
+      },
+    ],
+  },
+  {
+    round: 3,
     category: 'Flowers',
     cap: 4,
-    elements: ['wildflower_patch', 'sunflower', 'shade_fern'],
+    elements: ['wildflower_patch', 'sunflower_cluster', 'shade_fern'],
     starCriteria: [
       {
         stars: 1,
@@ -66,61 +89,12 @@ export const ROUNDS: RoundConfig[] = [
       },
     ],
   },
-  {
-    round: 3,
-    category: 'Shrubs',
-    cap: 3,
-    elements: ['native_shrub', 'berry_bush', 'hedge_row'],
-    starCriteria: [
-      {
-        stars: 1,
-        description: 'Place at least 1 shrub',
-        check: (p) => p.length >= 1,
-      },
-      {
-        stars: 2,
-        description: 'Place at least 2 shrubs',
-        check: (p) => p.length >= 2,
-      },
-      {
-        stars: 3,
-        description: 'Place 3 shrubs with at least 2 different species',
-        check: (p) => p.length >= 3 && new Set(p.map(e => e.elementType)).size >= 2,
-      },
-    ],
-  },
-  {
-    round: 4,
-    category: 'Objects',
-    cap: 3,
-    elements: ['birdhouse', 'insect_hotel', 'compost_bin'],
-    starCriteria: [
-      {
-        stars: 1,
-        description: 'Place at least 1 object',
-        check: (p) => p.length >= 1,
-      },
-      {
-        stars: 2,
-        description: 'Place at least 2 objects',
-        check: (p) => p.length >= 2,
-      },
-      {
-        stars: 3,
-        description: 'Place 3 objects with insect hotel near flowers',
-        check: (p) => {
-          if (p.length < 3) return false;
-          return p.some(e => e.elementType === 'insect_hotel');
-        },
-      },
-    ],
-  },
 ];
 
 export const PROXIMITY_REQUIREMENTS: ProximityRequirement[] = [
   {
     element: 'insect_hotel',
-    requiresNearby: ['wildflower_patch', 'sunflower', 'shade_fern'],
+    requiresNearby: ['wildflower_patch', 'sunflower_cluster', 'shade_fern'],
     maxDistance: 150,
     description: 'Place near flowers to unlock',
   },

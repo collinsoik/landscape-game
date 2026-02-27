@@ -87,9 +87,9 @@ export default function SubmitPage() {
           Submit Your Design
         </h1>
         <div className="flex justify-center mb-2">
-          <StarDisplay stars={totalStars} maxStars={12} size="sm" />
+          <StarDisplay stars={totalStars} maxStars={9} size="sm" />
         </div>
-        <p className="text-sm text-[#6a9a4a]">{totalStars}/12 stars earned</p>
+        <p className="text-sm text-[#6a9a4a]">{totalStars}/9 stars earned</p>
       </div>
 
       {/* Preview */}

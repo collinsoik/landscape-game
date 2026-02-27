@@ -38,9 +38,9 @@ export default function LandingPage() {
           Landscape Builders
         </h1>
         <p className="text-sm text-[#6a9a4a] max-w-md">
-          Design a biodiverse landscape through 4 rounds of planting trees,
-          flowers, shrubs, and habitat structures. Earn stars and share your
-          creation!
+          You want more birds to visit the courtyard at your school! Create a
+          courtyard that has plants the birds will love and a place they can
+          use as a home. Earn stars and share your creation!
         </p>
       </div>
 

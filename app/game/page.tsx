@@ -85,7 +85,7 @@ export default function GamePage() {
   }, [currentRound, placements, completeRound]);
 
   const handleContinue = useCallback(() => {
-    if (currentRound >= 4) {
+    if (currentRound >= ROUNDS.length) {
       setPhase('submission');
       router.push('/submit');
     } else {
@@ -134,7 +134,7 @@ export default function GamePage() {
         round={currentRound}
         starsEarned={lastResult?.stars ?? 0}
         onContinue={handleContinue}
-        isFinalRound={currentRound >= 4}
+        isFinalRound={currentRound >= ROUNDS.length}
       />
     </div>
   );
