@@ -18,6 +18,7 @@ export interface SubmissionPayload {
   playerName: string;
   placements: LocalPlacement[];
   stars: { round: number; stars: number }[];
+  landscapeId?: string;
 }
 
 export interface GalleryEntry {
@@ -26,4 +27,5 @@ export interface GalleryEntry {
   placements: LocalPlacement[];
   stars: { round: number; stars: number }[];
   submittedAt: string;
+  landscapeId?: string;
 }

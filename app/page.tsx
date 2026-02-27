@@ -3,16 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameStore } from '@/store';
+import { DEFAULT_LANDSCAPE, type LandscapeId } from '@/config/landscapes';
 import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
 import PixelInput from '@/components/shared/PixelInput';
+import LandscapeSelector from '@/components/home/LandscapeSelector';
 
 export default function LandingPage() {
   const router = useRouter();
   const setPlayerName = useGameStore((s) => s.setPlayerName);
+  const setLandscapeId = useGameStore((s) => s.setLandscapeId);
   const startGame = useGameStore((s) => s.startGame);
   const clearCanvas = useGameStore((s) => s.clearCanvas);
   const [name, setName] = useState('');
+  const [landscape, setLandscape] = useState<LandscapeId>(DEFAULT_LANDSCAPE);
   const [error, setError] = useState('');
 
   const handleStart = (e: React.FormEvent) => {
@@ -23,6 +27,7 @@ export default function LandingPage() {
       return;
     }
     setPlayerName(trimmed);
+    setLandscapeId(landscape);
     clearCanvas();
     startGame();
     router.push('/game');
@@ -44,7 +49,7 @@ export default function LandingPage() {
         </p>
       </div>
 
-      <PixelCard title="Start Building" className="w-full max-w-sm">
+      <PixelCard title="Start Building" className="w-full max-w-md">
         <form onSubmit={handleStart} className="flex flex-col gap-4">
           <PixelInput
             label="Your Name"
@@ -54,6 +59,7 @@ export default function LandingPage() {
             maxLength={20}
             autoComplete="off"
           />
+          <LandscapeSelector value={landscape} onChange={setLandscape} />
           {error && <p className="text-xs text-[#c0392b]">{error}</p>}
           <PixelButton type="submit" variant="primary" size="lg">
             Start Game

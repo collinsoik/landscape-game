@@ -62,7 +62,7 @@ router.post('/rooms/:code/submit', (req, res) => {
       return;
     }
 
-    const { playerName, placements, stars } = req.body || {};
+    const { playerName, placements, stars, landscapeId } = req.body || {};
     if (!playerName || placements === undefined || stars === undefined) {
       res.status(400).json({ error: 'playerName, placements, and stars are required' });
       return;
@@ -70,12 +70,13 @@ router.post('/rooms/:code/submit', (req, res) => {
 
     const db = getDb();
     const result = db.prepare(
-      'INSERT INTO submissions (room_code, player_name, placements_json, stars_json) VALUES (?, ?, ?, ?)'
+      'INSERT INTO submissions (room_code, player_name, placements_json, stars_json, landscape_id) VALUES (?, ?, ?, ?, ?)'
     ).run(
       room.room_code,
       playerName,
       JSON.stringify(placements),
       JSON.stringify(stars),
+      landscapeId || 'meadow',
     );
 
     res.json({ submissionId: result.lastInsertRowid });
@@ -106,6 +107,7 @@ router.get('/rooms/:code/submissions', (req, res) => {
       playerName: row.player_name,
       placements: JSON.parse(row.placements_json),
       stars: JSON.parse(row.stars_json),
+      landscapeId: row.landscape_id || 'meadow',
       submittedAt: row.submitted_at,
     }));
 

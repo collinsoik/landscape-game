@@ -17,7 +17,7 @@ import RoundTransition from '@/components/game/RoundTransition';
 export default function GamePage() {
   const router = useRouter();
   const {
-    phase, currentRound, playerName, roundResults,
+    phase, currentRound, playerName, roundResults, landscapeId,
     completeRound, advanceRound, setPhase,
     placements, selectedElementType, addPlacement, updatePlacementPosition, removePlacement, selectElement,
   } = useGameStore();
@@ -124,6 +124,7 @@ export default function GamePage() {
           currentRound={currentRound}
           selectedElementType={selectedElementType}
           selectedPlacementId={selectedPlacementId}
+          landscapeId={landscapeId}
           onSelectPlacement={setSelectedPlacementId}
           onMovePlacement={updatePlacementPosition}
           onPlaceElement={handlePlaceElement}

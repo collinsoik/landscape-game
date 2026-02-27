@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { GAME_DEFAULTS } from '@/config/game-defaults';
 import { AWARDS } from '@/config/rounds';
 import type { GalleryEntry, LocalPlacement } from '@/lib/types';
+import type { LandscapeId } from '@/config/landscapes';
 import LandscapePreview from '@/components/game/LandscapePreview';
 import StarDisplay from '@/components/game/StarDisplay';
 import PixelButton from '@/components/shared/PixelButton';
@@ -44,13 +45,15 @@ export default function GalleryPage() {
       const res = await fetch(`${API_URL}/api/rooms/${roomCode}/submissions`);
       if (!res.ok) throw new Error('Failed to load');
       const data = await res.json();
+      const list = Array.isArray(data) ? data : data.submissions ?? [];
       setEntries(
-        data.map((s: { id: number; player_name: string; placements_json: string; stars_json: string; submitted_at: string }) => ({
-          id: s.id,
-          playerName: s.player_name,
-          placements: JSON.parse(s.placements_json) as LocalPlacement[],
-          stars: JSON.parse(s.stars_json) as { round: number; stars: number }[],
-          submittedAt: s.submitted_at,
+        list.map((s: Record<string, unknown>) => ({
+          id: s.id as number,
+          playerName: (s.playerName ?? s.player_name) as string,
+          placements: (typeof s.placements === 'string' ? JSON.parse(s.placements as string) : s.placements) as LocalPlacement[],
+          stars: (typeof s.stars === 'string' ? JSON.parse(s.stars as string) : s.stars) as { round: number; stars: number }[],
+          submittedAt: (s.submittedAt ?? s.submitted_at) as string,
+          landscapeId: (s.landscapeId ?? s.landscape_id ?? 'meadow') as string,
         })),
       );
     } catch (err) {
@@ -141,6 +144,7 @@ export default function GalleryPage() {
                     placements={entry.placements}
                     canvasWidth={GAME_DEFAULTS.canvas.width}
                     canvasHeight={GAME_DEFAULTS.canvas.height}
+                    landscapeId={entry.landscapeId as LandscapeId}
                   />
                 </div>
                 <div className="flex items-center justify-between mb-2">

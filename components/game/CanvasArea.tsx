@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import type { LocalPlacement } from '@/lib/types';
+import type { LandscapeId } from '@/config/landscapes';
 import KonvaStage from './KonvaStage';
 
 interface CanvasAreaProps {
@@ -11,6 +12,7 @@ interface CanvasAreaProps {
   currentRound: number;
   selectedElementType: string | null;
   selectedPlacementId: string | null;
+  landscapeId?: LandscapeId;
   onSelectPlacement: (id: string | null) => void;
   onMovePlacement: (placementId: string, x: number, y: number) => void;
   onPlaceElement: (elementType: string, x: number, y: number) => void;

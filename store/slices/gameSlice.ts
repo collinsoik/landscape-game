@@ -1,4 +1,5 @@
 import { StateCreator } from 'zustand';
+import { type LandscapeId, DEFAULT_LANDSCAPE } from '@/config/landscapes';
 
 export type GamePhase = 'name_entry' | 'playing' | 'round_complete' | 'submission' | 'gallery';
 
@@ -14,6 +15,7 @@ export interface GameSlice {
   currentRound: number;
   roundResults: RoundResult[];
   submittedRoomCode: string | null;
+  landscapeId: LandscapeId;
 
   // Actions
   setPlayerName: (name: string) => void;
@@ -22,6 +24,7 @@ export interface GameSlice {
   advanceRound: () => void;
   setPhase: (phase: GamePhase) => void;
   setSubmittedRoomCode: (code: string) => void;
+  setLandscapeId: (id: LandscapeId) => void;
   resetGame: () => void;
 }
 
@@ -31,6 +34,7 @@ export const createGameSlice: StateCreator<GameSlice, [], [], GameSlice> = (set)
   currentRound: 1,
   roundResults: [],
   submittedRoomCode: null,
+  landscapeId: DEFAULT_LANDSCAPE,
 
   setPlayerName: (name) => set({ playerName: name }),
   startGame: () => set({ phase: 'playing', currentRound: 1, roundResults: [] }),
@@ -48,6 +52,7 @@ export const createGameSlice: StateCreator<GameSlice, [], [], GameSlice> = (set)
     }),
   setPhase: (phase) => set({ phase }),
   setSubmittedRoomCode: (code) => set({ submittedRoomCode: code }),
+  setLandscapeId: (id) => set({ landscapeId: id }),
   resetGame: () =>
     set({
       phase: 'name_entry',
@@ -55,5 +60,6 @@ export const createGameSlice: StateCreator<GameSlice, [], [], GameSlice> = (set)
       currentRound: 1,
       roundResults: [],
       submittedRoomCode: null,
+      landscapeId: DEFAULT_LANDSCAPE,
     }),
 });

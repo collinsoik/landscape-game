@@ -7,6 +7,7 @@ import type { LocalPlacement } from '@/lib/types';
 import { getElementDef } from '@/config/elements';
 import { getSprite, getSpriteSync } from '@/lib/sprites/loader';
 import { GAME_DEFAULTS } from '@/config/game-defaults';
+import type { LandscapeId } from '@/config/landscapes';
 import BackgroundLayer from './layers/BackgroundLayer';
 
 const Stage = dynamic(
@@ -18,12 +19,14 @@ interface LandscapePreviewProps {
   placements: LocalPlacement[];
   canvasWidth: number;
   canvasHeight: number;
+  landscapeId?: LandscapeId;
 }
 
 export default function LandscapePreview({
   placements,
   canvasWidth,
   canvasHeight,
+  landscapeId,
 }: LandscapePreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -62,7 +65,7 @@ export default function LandscapePreview({
     <div ref={containerRef} className="w-full bg-[#0d1f0d]" style={{ imageRendering: 'pixelated' }}>
       {containerWidth > 0 && (
         <Stage width={stageWidth} height={stageHeight} scaleX={scale} scaleY={scale} listening={false}>
-          <BackgroundLayer width={canvasWidth} height={canvasHeight} satelliteImagePath={null} />
+          <BackgroundLayer width={canvasWidth} height={canvasHeight} landscapeId={landscapeId} />
           <Layer listening={false}>
             {placements.map((p) => {
               const def = getElementDef(p.elementType);

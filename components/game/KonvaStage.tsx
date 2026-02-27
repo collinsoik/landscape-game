@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useRef, useCallback, useState } from 'react';
 import { getElementDef } from '@/config/elements';
 import { GAME_DEFAULTS } from '@/config/game-defaults';
+import type { LandscapeId } from '@/config/landscapes';
 import BackgroundLayer from './layers/BackgroundLayer';
 import ElementsLayer from './layers/ElementsLayer';
 import UILayer from './layers/UILayer';
@@ -22,6 +23,7 @@ interface KonvaStageProps {
   currentRound: number;
   selectedElementType: string | null;
   selectedPlacementId: string | null;
+  landscapeId?: LandscapeId;
   onSelectPlacement: (id: string | null) => void;
   onMovePlacement: (placementId: string, x: number, y: number) => void;
   onPlaceElement: (elementType: string, x: number, y: number) => void;
@@ -37,6 +39,7 @@ export default function KonvaStage({
   currentRound,
   selectedElementType,
   selectedPlacementId,
+  landscapeId,
   onSelectPlacement,
   onMovePlacement,
   onPlaceElement,
@@ -177,7 +180,7 @@ export default function KonvaStage({
         scaleX={scale}
         scaleY={scale}
       >
-        <BackgroundLayer width={canvasWidth} height={canvasHeight} satelliteImagePath={null} />
+        <BackgroundLayer width={canvasWidth} height={canvasHeight} landscapeId={landscapeId} />
         <ElementsLayer
           placements={placements}
           currentRound={currentRound}

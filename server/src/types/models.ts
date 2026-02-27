@@ -12,6 +12,7 @@ export interface Submission {
   player_name: string;
   placements_json: string;
   stars_json: string;
+  landscape_id: string;
   submitted_at: string;
 }
 

@@ -14,7 +14,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function SubmitPage() {
   const router = useRouter();
-  const { playerName, placements, roundResults, setSubmittedRoomCode, setPhase } = useGameStore();
+  const { playerName, placements, roundResults, landscapeId, setSubmittedRoomCode, setPhase } = useGameStore();
 
   // Wait for store to hydrate from sessionStorage before rendering
   const [hydrated, setHydrated] = useState(false);
@@ -64,6 +64,7 @@ export default function SubmitPage() {
           playerName,
           placements,
           stars: roundResults.map((r) => ({ round: r.round, stars: r.stars })),
+          landscapeId,
         }),
       });
 
@@ -121,6 +122,7 @@ export default function SubmitPage() {
           placements={placements}
           canvasWidth={GAME_DEFAULTS.canvas.width}
           canvasHeight={GAME_DEFAULTS.canvas.height}
+          landscapeId={landscapeId}
         />
       </div>
 

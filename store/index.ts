@@ -22,6 +22,7 @@ export const useGameStore = create<GameStore>()(
         currentRound: state.currentRound,
         phase: state.phase,
         submittedRoomCode: state.submittedRoomCode,
+        landscapeId: state.landscapeId,
       }),
     },
   ),

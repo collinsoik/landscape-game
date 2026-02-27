@@ -25,6 +25,9 @@ export function getDb(): Database.Database {
   const schema = fs.readFileSync(schemaPath, 'utf-8');
   db.exec(schema);
 
+  // Migrate: add landscape_id column if missing
+  try { db.exec("ALTER TABLE submissions ADD COLUMN landscape_id TEXT DEFAULT 'meadow'"); } catch {}
+
   return db;
 }
 
