@@ -44,6 +44,7 @@ export default function KonvaStage({
 }: KonvaStageProps) {
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const elementClickedRef = useRef(false);
 
   const scaleX = width / canvasWidth;
   const scaleY = height / canvasHeight;
@@ -64,6 +65,14 @@ export default function KonvaStage({
   const isInBounds = (x: number, y: number) =>
     x >= 0 && x <= canvasWidth && y >= 0 && y <= canvasHeight;
 
+  const handleElementSelect = useCallback(
+    (id: string | null) => {
+      elementClickedRef.current = true;
+      onSelectPlacement(id);
+    },
+    [onSelectPlacement],
+  );
+
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => setCursorPos(screenToCanvas(e.clientX, e.clientY)),
     [screenToCanvas],
@@ -73,6 +82,11 @@ export default function KonvaStage({
 
   const handleStageClick = useCallback(
     (e: React.MouseEvent) => {
+      // Skip if an element was just clicked (its handler already ran)
+      if (elementClickedRef.current) {
+        elementClickedRef.current = false;
+        return;
+      }
       const pos = screenToCanvas(e.clientX, e.clientY);
       if (selectedElementType && isInBounds(pos.x, pos.y)) {
         const def = getElementDef(selectedElementType);
@@ -169,7 +183,7 @@ export default function KonvaStage({
           currentRound={currentRound}
           selectedElementType={selectedElementType}
           selectedPlacementId={selectedPlacementId}
-          onSelect={onSelectPlacement}
+          onSelect={handleElementSelect}
           onMove={onMovePlacement}
           canvasWidth={canvasWidth}
           canvasHeight={canvasHeight}
