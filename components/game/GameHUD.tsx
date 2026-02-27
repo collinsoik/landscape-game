@@ -7,8 +7,6 @@ interface GameHUDProps {
   currentRound: number;
   placedCount: number;
   cap: number;
-  allowMovePreviousRound: boolean;
-  onToggleMovePrevious: () => void;
   onNextRound: () => void;
 }
 
@@ -16,8 +14,6 @@ export default function GameHUD({
   currentRound,
   placedCount,
   cap,
-  allowMovePreviousRound,
-  onToggleMovePrevious,
   onNextRound,
 }: GameHUDProps) {
   const roundConfig = ROUNDS[currentRound - 1];
@@ -34,16 +30,6 @@ export default function GameHUD({
       </div>
 
       <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={allowMovePreviousRound}
-            onChange={onToggleMovePrevious}
-            className="w-4 h-4 accent-green-500 cursor-pointer"
-          />
-          <span className="text-neutral-300 text-xs">Move previous</span>
-        </label>
-
         <PixelButton variant="primary" size="sm" onClick={onNextRound}>
           {currentRound >= ROUNDS.length ? 'Finish' : 'Next Round'}
         </PixelButton>

@@ -10,7 +10,7 @@ import { GAME_DEFAULTS } from '@/config/game-defaults';
 interface ElementsLayerProps {
   placements: LocalPlacement[];
   currentRound: number;
-  allowMovePreviousRound: boolean;
+  selectedElementType: string | null;
   selectedPlacementId: string | null;
   onSelect: (placementId: string | null) => void;
   onMove: (placementId: string, x: number, y: number) => void;
@@ -21,7 +21,7 @@ interface ElementsLayerProps {
 function ElementsLayer({
   placements,
   currentRound,
-  allowMovePreviousRound,
+  selectedElementType,
   selectedPlacementId,
   onSelect,
   onMove,
@@ -66,7 +66,8 @@ function ElementsLayer({
         if (!sprite) return null;
 
         const isCurrentRound = p.round === currentRound;
-        const canMove = isCurrentRound || allowMovePreviousRound;
+        const inSelectMode = selectedElementType === null;
+        const canMove = isCurrentRound || inSelectMode;
         const isSelected = p.id === selectedPlacementId;
 
         return (

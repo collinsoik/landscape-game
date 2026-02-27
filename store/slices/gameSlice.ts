@@ -14,7 +14,6 @@ export interface GameSlice {
   currentRound: number;
   roundResults: RoundResult[];
   submittedRoomCode: string | null;
-  allowMovePreviousRound: boolean;
 
   // Actions
   setPlayerName: (name: string) => void;
@@ -23,7 +22,6 @@ export interface GameSlice {
   advanceRound: () => void;
   setPhase: (phase: GamePhase) => void;
   setSubmittedRoomCode: (code: string) => void;
-  toggleMovePreviousRound: () => void;
   resetGame: () => void;
 }
 
@@ -33,7 +31,6 @@ export const createGameSlice: StateCreator<GameSlice, [], [], GameSlice> = (set)
   currentRound: 1,
   roundResults: [],
   submittedRoomCode: null,
-  allowMovePreviousRound: false,
 
   setPlayerName: (name) => set({ playerName: name }),
   startGame: () => set({ phase: 'playing', currentRound: 1, roundResults: [] }),
@@ -51,7 +48,6 @@ export const createGameSlice: StateCreator<GameSlice, [], [], GameSlice> = (set)
     }),
   setPhase: (phase) => set({ phase }),
   setSubmittedRoomCode: (code) => set({ submittedRoomCode: code }),
-  toggleMovePreviousRound: () => set((state) => ({ allowMovePreviousRound: !state.allowMovePreviousRound })),
   resetGame: () =>
     set({
       phase: 'name_entry',
@@ -59,6 +55,5 @@ export const createGameSlice: StateCreator<GameSlice, [], [], GameSlice> = (set)
       currentRound: 1,
       roundResults: [],
       submittedRoomCode: null,
-      allowMovePreviousRound: false,
     }),
 });

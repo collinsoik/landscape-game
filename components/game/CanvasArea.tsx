@@ -9,7 +9,6 @@ interface CanvasAreaProps {
   canvasHeight: number;
   placements: LocalPlacement[];
   currentRound: number;
-  allowMovePreviousRound: boolean;
   selectedElementType: string | null;
   selectedPlacementId: string | null;
   onSelectPlacement: (id: string | null) => void;
