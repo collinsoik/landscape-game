@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGameStore } from '@/store';
 import { ROUNDS } from '@/config/rounds';
@@ -29,6 +29,23 @@ export default function GamePage() {
     router.replace('/');
     return null;
   }
+
+  // Delete/Backspace removes the selected placement (current round only)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (!selectedPlacementId) return;
+        const placement = placements.find((p) => p.id === selectedPlacementId);
+        if (placement && placement.round === currentRound) {
+          e.preventDefault();
+          removePlacement(selectedPlacementId);
+          setSelectedPlacementId(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedPlacementId, placements, currentRound, removePlacement]);
 
   const roundConfig = ROUNDS[currentRound - 1];
   const roundPlacements = useMemo(
