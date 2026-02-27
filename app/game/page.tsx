@@ -32,13 +32,6 @@ export default function GamePage() {
     return unsub;
   }, []);
 
-  // Redirect if no player name (only after hydration)
-  if (!hydrated) return null;
-  if (!playerName) {
-    router.replace('/');
-    return null;
-  }
-
   // Delete/Backspace removes the selected placement
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -105,6 +98,13 @@ export default function GamePage() {
   }, [currentRound, advanceRound, setPhase, router]);
 
   const lastResult = roundResults[roundResults.length - 1];
+
+  // Guards must come after all hooks
+  if (!hydrated) return null;
+  if (!playerName) {
+    router.replace('/');
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-screen bg-neutral-900">
