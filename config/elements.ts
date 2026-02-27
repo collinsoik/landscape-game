@@ -436,6 +436,28 @@ export const ELEMENT_CATALOG: ElementDefinition[] = [
     },
   },
 
+  {
+    type: 'bench',
+    name: 'Park Bench',
+    category: 'structures',
+    description: 'A wooden bench inviting visitors to sit and watch birds. Encourages people to slow down, observe wildlife, and connect with the sanctuary.',
+    spriteKey: 'bench',
+    width: 40,
+    height: 28,
+    cost: 2,
+    baseScores: { biodiversity: 1, sustainability: 2, aesthetics: 7, ecosystemHealth: 1 },
+    properties: {
+      isNative: false,
+      providesShade: false,
+      attractsPollinators: false,
+      waterAbsorption: 0,
+      carbonSequestration: 0,
+      wildlifeValue: 2,
+      shadeRequirement: 'any',
+      waterRequirement: 'low',
+    },
+  },
+
   // === WILDLIFE HABITAT (2 coins — ecosystem builders) ===
   {
     type: 'log_pile',

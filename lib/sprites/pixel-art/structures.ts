@@ -77,6 +77,31 @@ const COMPOST_BIN_PALETTE: Record<string, string> = {
   D: '#3d5c1a', // darker green compost
 };
 
+// ---------------------------------------------------------------------------
+// bench: 40x28, 4px blocks, 10 cols x 7 rows
+//   10 * 4 = 40  ✓
+//    7 * 4 = 28  ✓
+// Wooden park bench with slatted back, seat, and iron legs.
+// ---------------------------------------------------------------------------
+const BENCH: string[] = [
+  //0123456789
+  '.BBBBBBBB.', // 0  back rest top rail
+  '.BbBBbBBb.', // 1  back slats with light wood grain
+  '.BBBBBBBB.', // 2  back rest bottom rail
+  'SSSSSSSSSS', // 3  seat plank
+  '..L....L..', // 4  iron legs
+  '..L....L..', // 5  iron legs
+  '..FF..FF..', // 6  feet / ground contact
+];
+
+const BENCH_PALETTE: Record<string, string> = {
+  B: '#5c3a1e', // dark brown back frame
+  b: '#a67c52', // lighter brown slat detail
+  S: '#8b6b3e', // medium brown seat wood
+  L: '#4a4a4a', // dark iron legs
+  F: '#333333', // darker iron feet
+};
+
 export const structureSprites: Record<string, DrawFn> = {
   birdhouse: (ctx, w, h) => {
     const pixelSize = 4;
@@ -91,5 +116,10 @@ export const structureSprites: Record<string, DrawFn> = {
   compost_bin: (ctx, w, h) => {
     const pixelSize = 4;
     drawTemplate(ctx, COMPOST_BIN, COMPOST_BIN_PALETTE, pixelSize);
+  },
+
+  bench: (ctx, w, h) => {
+    const pixelSize = 4;
+    drawTemplate(ctx, BENCH, BENCH_PALETTE, pixelSize);
   },
 };

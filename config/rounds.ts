@@ -47,7 +47,7 @@ export const ROUNDS: RoundConfig[] = [
     round: 2,
     category: 'Decorations',
     cap: 4,
-    elements: ['birdhouse', 'birdbath', 'insect_hotel', 'log_pile'],
+    elements: ['birdhouse', 'birdbath', 'insect_hotel', 'log_pile', 'bench'],
     starCriteria: [
       {
         stars: 1,
