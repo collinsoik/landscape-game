@@ -13,6 +13,7 @@ import ElementSidebar from '@/components/sidebar/ElementSidebar';
 import GameHUD from '@/components/game/GameHUD';
 import GoalBanner from '@/components/game/GoalBanner';
 import RoundTransition from '@/components/game/RoundTransition';
+import WellnessMeters from '@/components/game/WellnessMeters';
 
 export default function GamePage() {
   const router = useRouter();
@@ -115,6 +116,7 @@ export default function GamePage() {
         onNextRound={handleNextRound}
       />
       <GoalBanner currentRound={currentRound} placements={placements} />
+      <WellnessMeters placements={placements} />
 
       <div className="flex-1 flex flex-col md:flex-row min-h-0">
         <CanvasArea

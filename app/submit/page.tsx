@@ -9,8 +9,33 @@ import StarDisplay from '@/components/game/StarDisplay';
 import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
 import PixelInput from '@/components/shared/PixelInput';
+import { calculateWellnessScores } from '@/lib/wellness-scores';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+function WellnessSummary({ placements }: { placements: import('@/lib/types').LocalPlacement[] }) {
+  const scores = calculateWellnessScores(placements);
+  return (
+    <div className="flex items-center justify-center gap-6 mt-3">
+      {[
+        { icon: '👤', label: 'People', score: scores.peopleScore, qualLabel: scores.peopleLabel, color: scores.peopleColor },
+        { icon: '🐦', label: 'Birds', score: scores.birdScore, qualLabel: scores.birdLabel, color: scores.birdColor },
+      ].map((m) => (
+        <div key={m.label} className="flex items-center gap-2">
+          <span className="text-base">{m.icon}</span>
+          <span className="text-xs font-bold text-[#d4e8c2]">{m.label}</span>
+          <div className="w-20 h-2.5 rounded-full bg-neutral-700 overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${(m.score / 20) * 100}%`, backgroundColor: m.color }}
+            />
+          </div>
+          <span className="text-xs font-semibold" style={{ color: m.color }}>{m.qualLabel}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function SubmitPage() {
   const router = useRouter();
@@ -114,6 +139,7 @@ export default function SubmitPage() {
           <StarDisplay stars={totalStars} maxStars={9} size="sm" />
         </div>
         <p className="text-sm text-[#6a9a4a]">{totalStars}/9 stars earned</p>
+        <WellnessSummary placements={placements} />
       </div>
 
       {/* Preview */}
