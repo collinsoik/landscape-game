@@ -14,6 +14,7 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'landscape-game',
       storage: createJSONStorage(() => sessionStorage),
+      skipHydration: true,
       partialize: (state) => ({
         playerName: state.playerName,
         placements: state.placements,
