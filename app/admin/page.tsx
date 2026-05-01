@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
 import PixelInput from '@/components/shared/PixelInput';
@@ -8,6 +9,7 @@ import PixelInput from '@/components/shared/PixelInput';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function AdminPage() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -67,7 +69,7 @@ export default function AdminPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <PixelButton variant="primary" size="lg" onClick={() => window.location.href = `/gallery/${roomCode}`}>
+              <PixelButton variant="primary" size="lg" onClick={() => router.push(`/gallery/${roomCode}`)}>
                 View Gallery
               </PixelButton>
               <PixelButton variant="secondary" size="md" onClick={() => { setRoomCode(null); setName(''); }}>
