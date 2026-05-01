@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useGameStore } from '@/store';
 import PixelButton from '@/components/shared/PixelButton';
@@ -59,9 +60,9 @@ export default function LandingPage() {
 
       <p className="mt-6 text-xs text-[#4a6a3a]">
         Are you a teacher?{' '}
-        <a href="/admin" className="text-[#8bba6a] underline hover:text-[#a8d880]">
+        <Link href="/admin" className="text-[#8bba6a] underline hover:text-[#a8d880]">
           Create a room for voting
-        </a>
+        </Link>
       </p>
     </div>
   );
