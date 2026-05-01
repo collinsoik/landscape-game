@@ -1,0 +1,60 @@
+const ADJECTIVES = [
+  "Brave",
+  "Bright",
+  "Calm",
+  "Cheerful",
+  "Cozy",
+  "Curious",
+  "Friendly",
+  "Gentle",
+  "Happy",
+  "Lively",
+  "Lucky",
+  "Mighty",
+  "Mossy",
+  "Quiet",
+  "Sleepy",
+  "Speedy",
+  "Sturdy",
+  "Sunny",
+  "Tiny",
+  "Tall",
+  "Wild",
+];
+
+const NOUNS = [
+  "Acorn",
+  "Bear",
+  "Beaver",
+  "Birch",
+  "Brook",
+  "Cedar",
+  "Cloud",
+  "Daisy",
+  "Fern",
+  "Forest",
+  "Fox",
+  "Heron",
+  "Leaf",
+  "Maple",
+  "Meadow",
+  "Mountain",
+  "Oak",
+  "Otter",
+  "Owl",
+  "Petal",
+  "Pine",
+  "Rabbit",
+  "River",
+  "Robin",
+  "Seed",
+  "Sparrow",
+  "Squirrel",
+  "Stone",
+];
+
+export function generatePlayerName(): string {
+  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+  return `${adj} ${noun}`;
+}

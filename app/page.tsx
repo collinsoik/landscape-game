@@ -1,28 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useGameStore } from '@/store';
 import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
-import PixelInput from '@/components/shared/PixelInput';
+import { generatePlayerName } from '@/lib/name-generator';
 
 export default function LandingPage() {
   const router = useRouter();
   const setPlayerName = useGameStore((s) => s.setPlayerName);
   const [name, setName] = useState('');
-  const [error, setError] = useState('');
 
-  const handleStart = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = name.trim();
-    if (trimmed.length < 1 || trimmed.length > 20) {
-      setError('Name must be between 1 and 20 characters.');
-      return;
+  useEffect(() => {
+    const generated = generatePlayerName();
+    setName(generated);
+    setPlayerName(generated);
+  }, [setPlayerName]);
+
+  const reroll = () => {
+    const generated = generatePlayerName();
+    setName(generated);
+    setPlayerName(generated);
+  };
+
+  const handleStart = () => {
+    if (name) {
+      router.push('/choose-landscape');
     }
-    setPlayerName(trimmed);
-    router.push('/choose-landscape');
   };
 
   return (
@@ -42,25 +48,42 @@ export default function LandingPage() {
       </div>
 
       <PixelCard title="Start Building" className="w-full max-w-sm">
-        <form onSubmit={handleStart} className="flex flex-col gap-4">
-          <PixelInput
-            label="Your Name"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={20}
-            autoComplete="off"
-          />
-          {error && <p className="text-xs text-[#c0392b]">{error}</p>}
-          <PixelButton type="submit" variant="primary" size="lg">
+        <div className="flex flex-col gap-4">
+          <div className="text-center">
+            <p className="text-xs uppercase tracking-widest text-[#6a9a4a] mb-1">
+              Playing As
+            </p>
+            <p
+              className="text-2xl font-bold text-[#8bba6a]"
+              style={{ textShadow: '2px 2px 0 #1a3a1a' }}
+            >
+              {name || ' '}
+            </p>
+            <button
+              type="button"
+              onClick={reroll}
+              className="mt-1 text-xs text-[#6a9a4a] underline hover:text-[#8bba6a]"
+            >
+              Re-roll name
+            </button>
+          </div>
+          <PixelButton
+            type="button"
+            onClick={handleStart}
+            variant="primary"
+            size="lg"
+          >
             Start Game
           </PixelButton>
-        </form>
+        </div>
       </PixelCard>
 
       <p className="mt-6 text-xs text-[#4a6a3a]">
         Are you a teacher?{' '}
-        <Link href="/admin" className="text-[#8bba6a] underline hover:text-[#a8d880]">
+        <Link
+          href="/admin"
+          className="text-[#8bba6a] underline hover:text-[#a8d880]"
+        >
           Create a room for voting
         </Link>
       </p>
