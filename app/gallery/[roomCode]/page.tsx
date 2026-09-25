@@ -12,12 +12,12 @@ import PixelButton from '@/components/shared/PixelButton';
 import PixelCard from '@/components/shared/PixelCard';
 import PixelInput from '@/components/shared/PixelInput';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { API_URL } from '@/lib/api';
 
 interface VoteResults {
-  mostBeautiful: { playerName: string; count: number }[];
-  mostEcoFriendly: { playerName: string; count: number }[];
-  mostCreative: { playerName: string; count: number }[];
+  mostBeautiful: { playerName: string; votes: number }[];
+  mostEcoFriendly: { playerName: string; votes: number }[];
+  mostCreative: { playerName: string; votes: number }[];
 }
 
 export default function GalleryPage() {
@@ -94,7 +94,7 @@ export default function GalleryPage() {
       const res = await fetch(`${API_URL}/api/rooms/${roomCode}/results`);
       if (!res.ok) throw new Error('Failed to load results');
       const data = await res.json();
-      setResults(data);
+      setResults(data.results);
       setShowResults(true);
     } catch {
       // ignore
@@ -220,7 +220,7 @@ export default function GalleryPage() {
                     {winner ? (
                       <div>
                         <p className="text-lg font-bold text-[#f39c12]">{winner.playerName}</p>
-                        <p className="text-sm text-[#6a9a4a]">{winner.count} vote{winner.count !== 1 ? 's' : ''}</p>
+                        <p className="text-sm text-[#6a9a4a]">{winner.votes} vote{winner.votes !== 1 ? 's' : ''}</p>
                       </div>
                     ) : (
                       <p className="text-sm text-[#6a9a4a]">No votes yet</p>

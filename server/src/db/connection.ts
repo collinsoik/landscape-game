@@ -25,8 +25,11 @@ export function getDb(): Database.Database {
   const schema = fs.readFileSync(schemaPath, 'utf-8');
   db.exec(schema);
 
-  // Migrate: add landscape_id column if missing
-  try { db.exec("ALTER TABLE submissions ADD COLUMN landscape_id TEXT DEFAULT 'meadow'"); } catch {}
+  // Upgrade existing databases without hiding a failed migration.
+  const columns = db.pragma('table_info(submissions)') as { name: string }[];
+  if (!columns.some((column) => column.name === 'landscape_id')) {
+    db.exec("ALTER TABLE submissions ADD COLUMN landscape_id TEXT NOT NULL DEFAULT 'meadow'");
+  }
 
   return db;
 }

@@ -2,7 +2,7 @@
 
 import { seededRandom } from './seed';
 
-export function drawCoastal(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+export function drawCoastal(ctx: CanvasRenderingContext2D, w: number, h: number, terrain?: CanvasRenderingContext2D): void {
   const rand = seededRandom(314);
 
   // Sky-grass zone (top ~35%)
@@ -33,6 +33,13 @@ export function drawCoastal(ctx: CanvasRenderingContext2D, w: number, h: number)
   oceanGrad.addColorStop(1, '#1a4a6a');
   ctx.fillStyle = oceanGrad;
   ctx.fillRect(0, oceanStart, w, h - oceanStart);
+
+  if (terrain) {
+    terrain.fillStyle = '#00ff00'; // Sand: non-plants only.
+    terrain.fillRect(0, sandStart, w, sandEnd - sandStart);
+    terrain.fillStyle = '#ff0000'; // Water: nothing can be placed here.
+    terrain.fillRect(0, oceanStart, w, h - oceanStart);
+  }
 
   // Jagged grass-sand transition
   ctx.fillStyle = '#3d6b2e';

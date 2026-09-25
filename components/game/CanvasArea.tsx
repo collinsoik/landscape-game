@@ -15,7 +15,7 @@ interface CanvasAreaProps {
   landscapeId?: LandscapeId;
   onSelectPlacement: (id: string | null) => void;
   onMovePlacement: (placementId: string, x: number, y: number) => void;
-  onPlaceElement: (elementType: string, x: number, y: number) => void;
+  onPlaceElement: (elementType: string, x: number, y: number) => string | null;
   onClearSelection: () => void;
 }
 

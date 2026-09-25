@@ -2,7 +2,7 @@
 
 import { seededRandom } from './seed';
 
-export function drawRockyHills(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+export function drawRockyHills(ctx: CanvasRenderingContext2D, w: number, h: number, terrain?: CanvasRenderingContext2D): void {
   // Base green with subtle hill shading
   const grad = ctx.createLinearGradient(0, 0, 0, h);
   grad.addColorStop(0, '#5a8a45');
@@ -60,6 +60,10 @@ export function drawRockyHills(ctx: CanvasRenderingContext2D, w: number, h: numb
       ctx.globalAlpha = 1;
       ctx.fillStyle = boulderColors[Math.floor(rand() * boulderColors.length)];
       ctx.fillRect(bx, by, bw, bh);
+      if (terrain) {
+        terrain.fillStyle = '#ff0000';
+        terrain.fillRect(bx, by, bw, bh);
+      }
 
       // Pixel highlight on top-left
       ctx.fillStyle = highlightColors[Math.floor(rand() * highlightColors.length)];
@@ -80,7 +84,13 @@ export function drawRockyHills(ctx: CanvasRenderingContext2D, w: number, h: numb
     const px = Math.floor(rand() * w);
     const py = Math.floor(rand() * h);
     ctx.fillStyle = boulderColors[Math.floor(rand() * boulderColors.length)];
-    ctx.fillRect(px, py, 3 + Math.floor(rand() * 4), 2 + Math.floor(rand() * 3));
+    const pw = 3 + Math.floor(rand() * 4);
+    const ph = 2 + Math.floor(rand() * 3);
+    ctx.fillRect(px, py, pw, ph);
+    if (terrain) {
+      terrain.fillStyle = '#ff0000';
+      terrain.fillRect(px, py, pw, ph);
+    }
   }
   ctx.globalAlpha = 1;
 }

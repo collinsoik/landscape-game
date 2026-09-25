@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, memo } from 'react';
 import type { ElementDefinition } from '@/config/elements';
 import type { LocalPlacement } from '@/lib/types';
-import { getSprite } from '@/lib/sprites/loader';
+import { getSprite, getSpriteSync } from '@/lib/sprites/loader';
+import { GAME_DEFAULTS } from '@/config/game-defaults';
 import { isElementUnlocked, getProximityDescription } from '@/lib/proximity';
 
 interface ElementCardProps {
@@ -23,6 +24,9 @@ function ElementCard({
 }: ElementCardProps) {
   const [spriteUrl, setSpriteUrl] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const dragImageRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => () => { dragImageRef.current?.remove(); }, []);
 
   const unlocked = isElementUnlocked(element.type, placements);
   const proximityDesc = getProximityDescription(element.type);
@@ -36,8 +40,33 @@ function ElementCard({
 
   const handleDragStart = (e: React.DragEvent) => {
     if (isDisabled) { e.preventDefault(); return; }
+    const sprite = getSpriteSync(element.type, element.width, element.height);
+    if (!sprite) { e.preventDefault(); return; }
     e.dataTransfer.setData('application/element-type', element.type);
     e.dataTransfer.effectAllowed = 'copy';
+    // Use the actual sprite at its landscape size, never a screenshot of the card.
+    const landscape = document.querySelector<HTMLElement>('[data-landscape-canvas]');
+    const viewScale = landscape ? landscape.clientWidth / GAME_DEFAULTS.canvas.width : 1;
+    const preview = document.createElement('canvas');
+    preview.width = Math.round(element.width * GAME_DEFAULTS.canvas.spriteScale * viewScale);
+    preview.height = Math.round(element.height * GAME_DEFAULTS.canvas.spriteScale * viewScale);
+    const ctx = preview.getContext('2d');
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sprite, 0, 0, preview.width, preview.height);
+    }
+    preview.style.cssText = 'position:fixed;left:-10000px;top:0;pointer-events:none;image-rendering:pixelated';
+    document.body.appendChild(preview);
+    dragImageRef.current?.remove();
+    dragImageRef.current = preview;
+    e.dataTransfer.setDragImage(preview, preview.width / 2, preview.height / 2);
+    onSelect(element.type);
+  };
+
+  const handleDragEnd = () => {
+    dragImageRef.current?.remove();
+    dragImageRef.current = null;
+    window.dispatchEvent(new Event('landscape-drag-end'));
   };
 
   const handleSelect = () => {
@@ -55,8 +84,8 @@ function ElementCard({
       <div
         draggable={!isDisabled}
         onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
         onClick={handleSelect}
-        onTouchEnd={handleSelect}
         className={`flex items-center gap-2.5 p-2 rounded-t select-none transition-colors relative
           ${isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
           ${isSelected ? 'bg-white/20 ring-2 ring-white/60' : !isDisabled ? 'bg-white/5 hover:bg-white/10' : 'bg-white/5'}

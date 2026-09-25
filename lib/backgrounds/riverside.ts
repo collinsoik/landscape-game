@@ -2,7 +2,7 @@
 
 import { seededRandom } from './seed';
 
-export function drawRiverside(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+export function drawRiverside(ctx: CanvasRenderingContext2D, w: number, h: number, terrain?: CanvasRenderingContext2D): void {
   // Green base
   const grad = ctx.createLinearGradient(0, 0, 0, h);
   grad.addColorStop(0, '#4a7c3f');
@@ -27,31 +27,34 @@ export function drawRiverside(ctx: CanvasRenderingContext2D, w: number, h: numbe
 
   // River base (darker water)
   ctx.fillStyle = '#2a6b8f';
-  ctx.beginPath();
-  ctx.moveTo(riverCenterX - riverWidth, -10);
-  ctx.bezierCurveTo(
-    riverCenterX - riverWidth * 1.5, h * 0.25,
-    riverCenterX + riverWidth * 0.8, h * 0.35,
-    riverCenterX - riverWidth * 0.3, h * 0.5,
-  );
-  ctx.bezierCurveTo(
-    riverCenterX - riverWidth * 1.2, h * 0.65,
-    riverCenterX + riverWidth * 0.5, h * 0.8,
-    riverCenterX - riverWidth * 0.5, h + 10,
-  );
-  ctx.lineTo(riverCenterX + riverWidth * 0.5, h + 10);
-  ctx.bezierCurveTo(
-    riverCenterX + riverWidth * 1.5, h * 0.8,
-    riverCenterX - riverWidth * 0.2, h * 0.65,
-    riverCenterX + riverWidth * 0.7, h * 0.5,
-  );
-  ctx.bezierCurveTo(
-    riverCenterX + riverWidth * 1.8, h * 0.35,
-    riverCenterX - riverWidth * 0.5, h * 0.25,
-    riverCenterX + riverWidth, -10,
-  );
-  ctx.closePath();
-  ctx.fill();
+  for (const surface of terrain ? [ctx, terrain] : [ctx]) {
+    surface.fillStyle = surface === ctx ? '#2a6b8f' : '#ff0000';
+    surface.beginPath();
+    surface.moveTo(riverCenterX - riverWidth, -10);
+    surface.bezierCurveTo(
+      riverCenterX - riverWidth * 1.5, h * 0.25,
+      riverCenterX + riverWidth * 0.8, h * 0.35,
+      riverCenterX - riverWidth * 0.3, h * 0.5,
+    );
+    surface.bezierCurveTo(
+      riverCenterX - riverWidth * 1.2, h * 0.65,
+      riverCenterX + riverWidth * 0.5, h * 0.8,
+      riverCenterX - riverWidth * 0.5, h + 10,
+    );
+    surface.lineTo(riverCenterX + riverWidth * 0.5, h + 10);
+    surface.bezierCurveTo(
+      riverCenterX + riverWidth * 1.5, h * 0.8,
+      riverCenterX - riverWidth * 0.2, h * 0.65,
+      riverCenterX + riverWidth * 0.7, h * 0.5,
+    );
+    surface.bezierCurveTo(
+      riverCenterX + riverWidth * 1.8, h * 0.35,
+      riverCenterX - riverWidth * 0.5, h * 0.25,
+      riverCenterX + riverWidth, -10,
+    );
+    surface.closePath();
+    surface.fill();
+  }
 
   // River highlight layer
   ctx.fillStyle = '#4a9fc4';

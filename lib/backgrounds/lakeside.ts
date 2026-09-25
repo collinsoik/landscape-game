@@ -2,7 +2,7 @@
 
 import { seededRandom } from './seed';
 
-export function drawLakeside(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+export function drawLakeside(ctx: CanvasRenderingContext2D, w: number, h: number, terrain?: CanvasRenderingContext2D): void {
   // Green base
   const grad = ctx.createLinearGradient(0, 0, w, h);
   grad.addColorStop(0, '#4a7c3f');
@@ -46,6 +46,15 @@ export function drawLakeside(ctx: CanvasRenderingContext2D, w: number, h: number
   ctx.ellipse(lakeX, lakeY, lakeRX, lakeRY, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  if (terrain) {
+    terrain.fillStyle = '#ff0000';
+    for (const offset of [0, 4]) {
+      terrain.beginPath();
+      terrain.ellipse(lakeX, lakeY + offset, lakeRX, lakeRY, 0, 0, Math.PI * 2);
+      terrain.fill();
+    }
+  }
+
   // Shore line — slightly larger darker ring
   ctx.strokeStyle = '#2d5a27';
   ctx.lineWidth = 3;
@@ -62,7 +71,16 @@ export function drawLakeside(ctx: CanvasRenderingContext2D, w: number, h: number
     const angle = rand() * Math.PI * 2;
     const sx = lakeX + Math.cos(angle) * (lakeRX + 4 + rand() * 8);
     const sy = lakeY + Math.sin(angle) * (lakeRY + 4 + rand() * 6);
-    ctx.fillRect(sx, sy, 6 + Math.floor(rand() * 10), 3 + Math.floor(rand() * 5));
+    const sw = 6 + Math.floor(rand() * 10);
+    const sh = 3 + Math.floor(rand() * 5);
+    ctx.fillRect(sx, sy, sw, sh);
+    if (terrain) {
+      // Do not let decorative shore sand overwrite the blocked water mask.
+      terrain.globalCompositeOperation = 'destination-over';
+      terrain.fillStyle = '#00ff00';
+      terrain.fillRect(sx, sy, sw, sh);
+      terrain.globalCompositeOperation = 'source-over';
+    }
   }
   ctx.globalAlpha = 1;
 

@@ -13,7 +13,9 @@ interface ElementsLayerProps {
   selectedElementType: string | null;
   selectedPlacementId: string | null;
   onSelect: (placementId: string | null) => void;
-  onMove: (placementId: string, x: number, y: number) => void;
+  onInteract: () => void;
+  onMove: (placementId: string, x: number, y: number) => boolean;
+  onPreviewMove: (placementId: string, x: number, y: number) => string | null;
   canvasWidth: number;
   canvasHeight: number;
 }
@@ -24,7 +26,9 @@ function ElementsLayer({
   selectedElementType,
   selectedPlacementId,
   onSelect,
+  onInteract,
   onMove,
+  onPreviewMove,
   canvasWidth,
   canvasHeight,
 }: ElementsLayerProps) {
@@ -45,20 +49,21 @@ function ElementsLayer({
   }, [placements]);
 
   const handleDragEnd = useCallback(
-    (placementId: string, elWidth: number, elHeight: number) =>
-      (e: { target: { x: () => number; y: () => number; position: (p: { x: number; y: number }) => void } }) => {
+    (placement: LocalPlacement, elWidth: number, elHeight: number) =>
+      (e: { target: { x: () => number; y: () => number; position: (p: { x: number; y: number }) => void; setAttrs: (attrs: Record<string, unknown>) => void } }) => {
         const x = Math.max(0, Math.min(e.target.x(), canvasWidth - elWidth));
         const y = Math.max(0, Math.min(e.target.y(), canvasHeight - elHeight));
-        e.target.position({ x, y });
-        onMove(placementId, x, y);
+        const accepted = onMove(placement.id, x, y);
+        e.target.position(accepted ? { x, y } : { x: placement.x, y: placement.y });
+        e.target.setAttrs({ strokeEnabled: placement.id === selectedPlacementId, stroke: '#ffffff', strokeWidth: 2 });
       },
-    [canvasWidth, canvasHeight, onMove],
+    [canvasWidth, canvasHeight, onMove, selectedPlacementId],
   );
 
   const scale = GAME_DEFAULTS.canvas.spriteScale;
 
   return (
-    <Layer>
+    <Layer imageSmoothingEnabled={false}>
       {placements.map((p) => {
         const def = getElementDef(p.elementType);
         if (!def) return null;
@@ -80,9 +85,15 @@ function ElementsLayer({
             height={def.height * scale}
             image={sprite}
             draggable={canMove}
+            onMouseDown={onInteract}
+            onTouchStart={onInteract}
             onClick={() => onSelect(isSelected ? null : p.id)}
             onTap={() => onSelect(isSelected ? null : p.id)}
-            onDragEnd={handleDragEnd(p.id, def.width * scale, def.height * scale)}
+            onDragEnd={handleDragEnd(p, def.width * scale, def.height * scale)}
+            onDragMove={(e) => {
+              const error = onPreviewMove(p.id, e.target.x(), e.target.y());
+              e.target.setAttrs({ strokeEnabled: !!error || isSelected, stroke: error ? '#ff6b6b' : '#ffffff', strokeWidth: error ? 3 : 2 });
+            }}
             strokeEnabled={isSelected}
             stroke="#ffffff"
             strokeWidth={isSelected ? 2 : 0}

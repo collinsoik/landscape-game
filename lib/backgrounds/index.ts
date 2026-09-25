@@ -7,7 +7,7 @@ import { drawRockyHills } from './rocky-hills';
 import { drawLakeside } from './lakeside';
 import { drawCoastal } from './coastal';
 
-export type BackgroundDrawFn = (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+export type BackgroundDrawFn = (ctx: CanvasRenderingContext2D, width: number, height: number, terrain?: CanvasRenderingContext2D) => void;
 
 const renderers: Record<LandscapeId, BackgroundDrawFn> = {
   meadow: drawMeadow,

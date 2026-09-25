@@ -55,17 +55,18 @@ export default function GamePage() {
 
   const handlePlaceElement = useCallback(
     (elementType: string, x: number, y: number) => {
-      if (!roundConfig) return;
-      const roundPlaced = placements.filter((p) => p.round === currentRound);
-      if (roundPlaced.length >= roundConfig.cap) return;
-      if (!roundConfig.elements.includes(elementType)) return;
-      if (!isElementUnlocked(elementType, placements)) return;
+      if (!roundConfig) return 'Choose an object for this round.';
+      const currentPlacements = useGameStore.getState().placements;
+      const roundPlaced = currentPlacements.filter((p) => p.round === currentRound);
+      if (roundPlaced.length >= roundConfig.cap) return 'This round is full. Move or remove an object to make room.';
+      if (!roundConfig.elements.includes(elementType)) return 'Choose an object for this round.';
+      if (!isElementUnlocked(elementType, currentPlacements)) return 'This object is not unlocked yet.';
 
       const def = getElementDef(elementType);
-      if (!def) return;
+      if (!def) return 'Choose an object first.';
       const spriteScale = GAME_DEFAULTS.canvas.spriteScale;
 
-      addPlacement({
+      const added = addPlacement({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         elementType,
         x,
@@ -74,6 +75,7 @@ export default function GamePage() {
         height: def.height * spriteScale,
         round: currentRound,
       });
+      return added ? null : `There is already a ${def.name} here. Try a spot beside it.`;
     },
     [roundConfig, placements, currentRound, addPlacement],
   );

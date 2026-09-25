@@ -371,3 +371,66 @@ landscape-game/
 **Database errors**
 - The SQLite database is created automatically in `server/data/landscape.db`
 - If it gets corrupted, stop the server, delete the file, and restart — it will be recreated from the schema
+
+
+## Classroom submissions on Open Door Engineering
+
+The browser uses `/games/landscape-game/api/rooms` on the current website for
+room creation, submissions, galleries, votes, and results. Next.js forwards these
+requests to the Express service on the server, so classroom browsers do not need
+access to the backend domain. The website's existing `/games/landscape-game/:path*`
+rewrite includes these API routes.
+
+Set `LANDSCAPE_API_URL` in the Next.js deployment to the Express service origin
+(production: `https://game-api.collinsoik.dev`; local: `http://localhost:3004`).
+The legacy `NEXT_PUBLIC_API_URL` variable is accepted server-side during migration.
+Do not use it in client components. Proxy responses are uncached and upstream
+failures return a retryable 503 without clearing the student's design.
+
+The Express service must be rebuilt and restarted when its source changes:
+
+```sh
+npm --prefix server ci
+npm --prefix server run build
+pm2 restart landscape-api
+```
+
+Deploying the Next.js frontend alone does not update this separately hosted
+service. Its database migration adds `landscape_id` to existing databases;
+new submissions retain the selected background. Old submissions whose background
+was never stored fall back to Meadow and cannot be reconstructed automatically.
+Back up the SQLite database before updating the service.
+
+After installing both root and server dependencies, run `npm test` and
+`npm run build`. Tests cover the same-origin proxy endpoints and errors, migration
+of the previous database schema, and persistence of all five backgrounds across
+a backend restart.
+
+
+### Terrain and placement checks
+
+Water and rocks block the entire object footprint. Sand accepts non-plant
+objects; trees, shrubs, flowers, ground cover, invasive plants, and planted rain
+gardens require grass. The background renderers paint a matching terrain mask
+from their own geometry, so curved shorelines and seeded boulders match the
+artwork. Blocked previews and drags show a red outline and explanation; invalid
+moves return to the previous position.
+
+Touch uses the same click path as mouse input, avoiding the old touch-end plus
+synthetic-click double placement. The store also rejects same-type placements
+within six canvas pixels without consuming a slot; close neighboring objects
+remain allowed. Sidebar drag images use the cached plant sprite at the canvas's
+current display scale.
+
+For browser regression checks, install Chromium with
+`npx playwright install chromium`, then run these in separate terminals:
+
+```sh
+DB_PATH=/tmp/landscape-browser-check.db PORT=3304 npm --prefix server start
+LANDSCAPE_API_URL=http://127.0.0.1:3304 npm run dev -- --port 3101
+npm run test:browser
+```
+
+These checks use a disposable local database, cover mouse and touchscreen
+placement, compare the drag image with the actual sprite, and create a test room
+to submit all five backgrounds and vote with external browser requests blocked.

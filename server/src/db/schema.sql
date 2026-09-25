@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   player_name TEXT NOT NULL,
   placements_json TEXT NOT NULL,
   stars_json TEXT NOT NULL,
+  landscape_id TEXT NOT NULL DEFAULT 'meadow',
   submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (room_code) REFERENCES rooms(room_code)
 );

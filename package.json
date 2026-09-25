@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "npm --prefix server run build && node --test server/tests/*.test.cjs && server/node_modules/.bin/tsx --test tests/*.test.ts",
+    "test:browser": "node tests/browser/placement.cjs && node tests/browser/submissions.cjs"
   },
   "dependencies": {
     "konva": "^10.2.0",
@@ -18,6 +20,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

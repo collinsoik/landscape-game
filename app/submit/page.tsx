@@ -11,7 +11,7 @@ import PixelCard from '@/components/shared/PixelCard';
 import PixelInput from '@/components/shared/PixelInput';
 import { calculateWellnessScores } from '@/lib/wellness-scores';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { API_URL } from '@/lib/api';
 
 function WellnessSummary({ placements }: { placements: import('@/lib/types').LocalPlacement[] }) {
   const scores = calculateWellnessScores(placements);

@@ -66,7 +66,7 @@ export default function LandscapePreview({
       {containerWidth > 0 && (
         <Stage width={stageWidth} height={stageHeight} scaleX={scale} scaleY={scale} listening={false}>
           <BackgroundLayer width={canvasWidth} height={canvasHeight} landscapeId={landscapeId} />
-          <Layer listening={false}>
+          <Layer listening={false} imageSmoothingEnabled={false}>
             {placements.map((p) => {
               const def = getElementDef(p.elementType);
               if (!def) return null;
